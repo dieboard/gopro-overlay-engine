@@ -2,6 +2,7 @@
 # Changelog
 
 Newest changes are always in [README.md](README.md)
+- 0.129.1 [Feature] Add `nnvgpu-60fps` profile for 60fps hardware-accelerated encoding on NVIDIA GPUs.
 - 0.115.0 [Fix] Previous smoothing had some issues - hopefully sorted. Many thanks to [@neri14](https://github.com/neri14) for pointing this out. Fixed possible issue with ffmpeg exiting before writing MOOV - sometimes could result in unplayable MP4 files.
 - 0.114.0 [Enhancement] Huge Improvement to usability of speed gauges! - Speed was not being smoothed. Now a kalman filter is applied to speed, giving a much better result.
   See below for before and after. This stops the speed gauges flickering between values.

@@ -1,14 +1,16 @@
 venv/
 venv-pypy/
+.venv/
 build/
-.idea/
-
-render/*
 dist/
 *.egg-info/
+*.egg
 
+.idea/
+.vscode/settings.json
+
+render/*
 *.so
-
 *.gpx
 *.MP4
 *.mp4
@@ -19,15 +21,39 @@ dist/
 # output from gopro-layout
 frame.png
 
-#output from viztracer
+# output from viztracer
 result.json
 
 # Ignore actuals / diffs from approvals
 tests/**/*.actual.png
 tests/**/*.diff.png
 tests/**/*.diff_over_approved.png
-
-**/__pycache__/
-
-.vscode/settings.json
 /tests/fit/2025-07-24-17-55-12.fit
+
+# Python caches
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Pytest cache
+.pytest_cache/
+
+# Type checker / linter caches
+.mypy_cache/
+.ruff_cache/
+
+# Tox environments
+.tox/
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
+
+# Hypothesis data
+.hypothesis/
+
+# OS-specific
+.DS_Store
+Thumbs.db

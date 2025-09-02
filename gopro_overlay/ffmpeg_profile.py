@@ -14,6 +14,11 @@ builtin_profiles = {
         "filter": "[0:v]scale_cuda=format=yuv420p[mp4_stream];[1:v]format=yuva420p,hwupload[overlay_stream];[mp4_stream][overlay_stream]overlay_cuda",
         "output": ["-vcodec", "h264_nvenc", "-rc:v", "cbr", "-b:v", "25M", "-bf:v", "3", "-profile:v", "main", "-spatial-aq", "true", "-movflags", "faststart"]
     },
+    "nnvgpu-60fps": {
+        "input": ["-hwaccel", "cuda", "-hwaccel_output_format", "cuda"],
+        "filter": "[0:v]scale_cuda=format=yuv420p[mp4_stream];[1:v]format=yuva420p,hwupload[overlay_stream];[mp4_stream][overlay_stream]overlay_cuda",
+        "output": ["-vcodec", "h264_nvenc", "-rc:v", "cbr", "-b:v", "25M", "-bf:v", "3", "-profile:v", "main", "-spatial-aq", "true", "-movflags", "faststart", "-r", "60"]
+    },
     "mov": {
         "input": [],
         "output": ["-vcodec", "png"]

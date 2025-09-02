@@ -4,6 +4,7 @@ import pathlib
 import sys
 
 from gopro_overlay import geo
+from gopro_overlay.ffmpeg_profile import builtin_profiles
 from gopro_overlay.framemeta_gpmd import LoadFlag
 from gopro_overlay.framemeta_gpx import MergeMode
 from gopro_overlay.log import fatal
@@ -104,7 +105,9 @@ def gopro_dashboard_arguments(args=None):
 
     render = parser.add_argument_group("Render", "Controlling rendering performance")
     render.add_argument("--profile",
-                        help="Use ffmpeg options profile <name> from ~/gopro-graphics/ffmpeg-profiles.json")
+                        help=f"Use ffmpeg options profile. "
+                             f"Built-in profiles: {', '.join(builtin_profiles.keys())}. "
+                             f"Or <name> from ~/gopro-graphics/ffmpeg-profiles.json")
     render.add_argument("--double-buffer", action="store_true",
                         help="Enable HIGHLY EXPERIMENTAL double buffering mode. May speed things up. May not work at all")
     render.add_argument("--ffmpeg-dir", type=pathlib.Path,

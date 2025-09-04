@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  photon:
+    image: rtuszik/photon-docker:latest
+    environment:
+      - COUNTRY_CODE=nl  # Changed from 'mc' to 'nl'
+      - UPDATE_STRATEGY=DISABLED
+    ports:
+      - "2322:2322"
+    volumes:
+      - photon_data:/photon/photon_data
+
+volumes:
+  photon_data:

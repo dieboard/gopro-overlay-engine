@@ -1,0 +1,11 @@
+# See https://pre-commit.com for more information
+repos:
+-   repo: local
+    hooks:
+    -   id: pytest-single-test
+        name: Run specific ffmpeg profile test
+        entry: python -m pytest tests/test_ffmpeg_profile.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [commit]

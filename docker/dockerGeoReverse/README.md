@@ -1,52 +1,70 @@
 # Geo Reverse Service (Photon)
 
-This directory contains a Docker setup for running a [Photon](httpss://photon.komoot.io/) instance for reverse geocoding.
+This directory contains a Docker setup for running a [Photon](https://photon.komoot.io/) instance for reverse geocoding. Photon is an open-source reverse geocoder powered by OpenStreetMap.
 
-## Setup
+### Prerequisites
 
-### 1. Download OpenStreetMap Data
+Before you begin, ensure you have the following installed and running on your system:
+* **Docker:** [Installation Guide](https://docs.docker.com/get-docker/)
+* **Docker Compose:** [Installation Guide](https://docs.docker.com/compose/install/) (Often included with Docker Desktop).
 
-This service requires an OpenStreetMap data file. For the Netherlands, you can download the `netherlands-latest.osm.pbf` file from [Geofabrik](https://download.geofabrik.de/europe/netherlands.html).
+## Setup & Running
 
-Download the file and place it in a directory of your choice. You will need to mount this directory into the Docker container.
+### Step 1: Prepare the Data Directory
 
-For example, you can create a `data` directory inside this directory (`docker/dockerGeoReverse/data`) and place the `.osm.pbf` file there.
+Create a directory to hold the OpenStreetMap data. In your project's root folder, run this command in the terminal:
+```bash
+mkdir data
+```
+### Step 2: Download OpenStreetMap Data
+This service requires an OpenStreetMap data file in .osm.pbf format. For this example, we'll use data for the Netherlands.
 
-### 2. Update `docker-compose.yml` (Optional)
+Download netherlands-latest.osm.pbf from Geofabrik.
 
-If you placed the data file in a different location than `docker/dockerGeoReverse/data`, you will need to update the `volumes` section in the `docker-compose.yml` file to point to the correct location of your data file.
+Place the downloaded file inside the data directory you created in the previous step.
 
-The current `docker-compose.yml` assumes the data is in a volume that will be populated by the container on first run, but for a large file like `netherlands-latest.osm.pbf`, it's better to mount it directly.
+Your directory structure should now look like this:
+```bash
+.
+├── data/
+│   └── netherlands-latest.osm.pbf
+└── docker-compose.yml
+```
 
-Here is an example of how to mount a local directory:
+### Step 3: Update docker-compose.yml (Optional)
+Create a file named docker-compose.yml in your project's root folder and add the following content. This configuration mounts your local data directory into the container, which is the most efficient way to handle large data files.
+```bash
+YAML
 
-```yaml
 version: '3.8'
 services:
   photon:
     image: rtuszik/photon-docker:latest
-    environment:
-      - COUNTRY_CODE=nl
-      - UPDATE_STRATEGY=DISABLED
+    container_name: photon_reverse_geocoder
     ports:
+      # Maps port 2322 on your machine to port 2322 in the container.
       - "2322:2322"
     volumes:
-      - ./data:/photon/photon_data # Mounts the local 'data' directory
-
-volumes:
-  photon_data:
+      # Mounts your local './data' directory into the container.
+      # Photon will automatically find and import the .osm.pbf file from here.
+      - ./data:/photon/photon_data
+    command: ["-nominatim-import", "-host", "0.0.0.0", "-port", "2322"]
 ```
-
-**Note:** The `photon.jar` file is part of the `rtuszik/photon-docker` Docker image, so you do not need to download it separately.
-
-## Running the service
-
-Once you have downloaded the data file and configured the `docker-compose.yml` correctly, you can start the service using:
-
+### Step 4: Start the Service
+With the data file in place and your docker-compose.yml saved, start the service using the VS Code terminal:
 ```bash
-docker-compose up
+Bash
+
+docker-compose up -d```
+(The -d flag runs the container in the background.)
+
+The first time you run this, it will take a significant amount of time to import the OpenStreetMap data. You can watch the progress by running docker logs -f dockergeoreverse-photon-1 or open Docker Desktop and click on Containers photon-1. 
+
+Testing the Service
+Once the import is complete, the service will be available on port 2322. You can test it by making a reverse geocoding request. For example, to find out what's at latitude 52.37 and longitude 4.89 (Amsterdam), open your terminal and use curl:
+
+Bash
+```bash
+curl "http://localhost:2322/reverse?lon=4.89&lat=52.37"
 ```
-
-The first time you run this, it may take a while to import the OpenStreetMap data.
-
-The service will be available on port `2322`.
+You should receive a GeoJSON response with details about the location. 🌍

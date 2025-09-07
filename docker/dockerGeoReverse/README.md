@@ -68,3 +68,17 @@ Bash
 curl "http://localhost:2322/reverse?lon=4.89&lat=52.37"
 ```
 You should receive a GeoJSON response with details about the location. 🌍
+
+### Step 5: Reverse Geocoding with Docker
+
+The `gopro-to-csv.py` script can enrich your data with street and city names by using a reverse geocoding service.Once the Photon container is running, you can use the `--reverse-geocode` flag. 
+
+
+Here is an example command:
+
+```shell
+py Bin/gopro-to-csv.py --reverse-geocode --simple-output your_video.MP4 output.csv
+or output.txt
+```
+
+

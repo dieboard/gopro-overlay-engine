@@ -16,9 +16,35 @@ from gopro_overlay.ffmpeg import FFMPEG
 from gopro_overlay.ffmpeg_gopro import FFMPEGGoPro
 from gopro_overlay.framemeta_gpmd import LoadFlag
 from gopro_overlay.gpmf import GPSFix, GPS_FIXED_VALUES
+import requests
+
 from gopro_overlay.gpx import load_timeseries
 from gopro_overlay.loading import GoproLoader
+from gopro_overlay.log import log
 from gopro_overlay.units import units
+
+
+def get_location_info(lat, lon, host, port):
+    try:
+        response = requests.get(f"http://{host}:{port}/reverse?lon={lon}&lat={lat}")
+        response.raise_for_status()
+        data = response.json()
+        if data and data.get("features"):
+            properties = data["features"][0].get("properties", {})
+            return {
+                "street": properties.get("street"),
+                "city": properties.get("city"),
+                "state": properties.get("state"),
+                "country": properties.get("country"),
+                "postcode": properties.get("postcode"),
+                "name": properties.get("name"),
+            }
+    except requests.exceptions.RequestException as e:
+        log(f"API request failed: {e}")
+    except Exception as e:
+        log(f"An error occurred: {e}")
+    return {}
+
 
 if __name__ == "__main__":
 
@@ -42,6 +68,12 @@ if __name__ == "__main__":
     parser.add_argument("output", type=pathlib.Path, nargs="?", default="-", help="Output CSV file (default stdout)")
 
     parser.add_argument("--gpx", action="store_true", help="Input is a gpx file")
+
+    parser.add_argument("--reverse-geocode", action="store_true", help="Reverse geocode the location of each point")
+    parser.add_argument("--reverse-geocode-host", default="localhost", help="Reverse geocode host")
+    parser.add_argument("--reverse-geocode-port", default=2322, type=int, help="Reverse geocode port")
+
+    parser.add_argument("--simple-output", action="store_true", help="Output date, street and city in multi-line format")
 
     args = parser.parse_args()
 
@@ -98,32 +130,60 @@ if __name__ == "__main__":
     dest: Optional[Path] = args.output
 
     with smart_open(dest) as f:
-        writer = csv.DictWriter(f=f,
-                                fieldnames=["packet", "packet_index", "gps_fix", "date", "lat", "lon", "dop", "alt",
-                                            "speed", "accel",
-                                            "dist", "time", "azi", "odo",
-                                            "grad",
-                                            "accl_x", "accl_y", "accl_z"])
-        writer.writeheader()
-        for entry in filter(filter_fn, ts.items(step=datetime.timedelta(seconds=args.every))):
-            
-            writer.writerow({
-                "packet": printable_unit(entry.packet),
-                "packet_index": printable_unit(entry.packet_index),
-                "gps_fix": GPSFix(entry.gpsfix).name,
-                "date": entry.dt,
-                "dop": printable_unit(entry.dop),
-                "lat": entry.point.lat,
-                "lon": entry.point.lon,
-                "alt": printable_unit(entry.alt),
-                "grad": printable_unit(entry.grad if entry.grad is not None else entry.cgrad),
-                "speed": printable_unit(entry.speed if entry.speed is not None else entry.cspeed),
-                "accel": printable_unit(entry.accel),
-                "dist": printable_unit(entry.dist),
-                "time": printable_unit(entry.time),
-                "azi": printable_unit(entry.azi),
-                "odo": printable_unit(entry.odo),
-                "accl_x": printable_unit(entry.accl.x) if entry.accl else None,
-                "accl_y": printable_unit(entry.accl.y) if entry.accl else None,
-                "accl_z": printable_unit(entry.accl.z) if entry.accl else None
-            })
+        if args.simple_output:
+            if not args.reverse_geocode:
+                raise SystemExit("--simple-output requires --reverse-geocode")
+            for entry in filter(filter_fn, ts.items(step=datetime.timedelta(seconds=args.every))):
+                location_info = get_location_info(
+                    lat=entry.point.lat,
+                    lon=entry.point.lon,
+                    host=args.reverse_geocode_host,
+                    port=args.reverse_geocode_port
+                )
+                f.write(f"{entry.dt.strftime('%H:%M:%S')} {location_info.get('street', '')} {location_info.get('city', '')} {location_info.get('state', '')}\n")
+
+        else:
+            fieldnames = ["packet", "packet_index", "gps_fix", "date", "lat", "lon", "dop", "alt",
+                          "speed", "accel",
+                          "dist", "time", "azi", "odo",
+                          "grad",
+                          "accl_x", "accl_y", "accl_z"]
+
+            if args.reverse_geocode:
+                fieldnames.extend(["name", "street", "city", "country", "postcode"])
+
+            writer = csv.DictWriter(f=f, fieldnames=fieldnames)
+            writer.writeheader()
+
+            for entry in filter(filter_fn, ts.items(step=datetime.timedelta(seconds=args.every))):
+                row = {
+                    "packet": printable_unit(entry.packet),
+                    "packet_index": printable_unit(entry.packet_index),
+                    "gps_fix": GPSFix(entry.gpsfix).name,
+                    "date": entry.dt,
+                    "dop": printable_unit(entry.dop),
+                    "lat": entry.point.lat,
+                    "lon": entry.point.lon,
+                    "alt": printable_unit(entry.alt),
+                    "grad": printable_unit(entry.grad if entry.grad is not None else entry.cgrad),
+                    "speed": printable_unit(entry.speed if entry.speed is not None else entry.cspeed),
+                    "accel": printable_unit(entry.accel),
+                    "dist": printable_unit(entry.dist),
+                    "time": printable_unit(entry.time),
+                    "azi": printable_unit(entry.azi),
+                    "odo": printable_unit(entry.odo),
+                    "accl_x": printable_unit(entry.accl.x) if entry.accl else None,
+                    "accl_y": printable_unit(entry.accl.y) if entry.accl else None,
+                    "accl_z": printable_unit(entry.accl.z) if entry.accl else None
+                }
+
+                if args.reverse_geocode:
+                    location_info = get_location_info(
+                        lat=entry.point.lat,
+                        lon=entry.point.lon,
+                        host=args.reverse_geocode_host,
+                        port=args.reverse_geocode_port
+                    )
+                    row.update(location_info)
+
+                writer.writerow(row)

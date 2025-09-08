@@ -57,4 +57,11 @@
 
     <component type="moving_map" name="moving_map" x="1644" y="100" size="256" zoom="16" corner_radius="35"/>
     <component type="journey_map" name="journey_map" x="1644" y="376" size="256" corner_radius="35"/>
+
+    <composite x="16" y="1040" name="location">
+        <component type="text" x="0" y="0" size="16" align="left">Street: </component>
+        <component type="metric" x="60" y="0" metric="street" size="16" align="left" cache="False"/>
+        <component type="text" x="0" y="24" size="16" align="left">State: </component>
+        <component type="metric" x="60" y="24" metric="state" size="16" align="left" cache="False"/>
+    </composite>
 </layout>

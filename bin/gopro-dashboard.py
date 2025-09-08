@@ -21,6 +21,7 @@ from gopro_overlay.ffmpeg_gopro import FFMPEGGoPro
 from gopro_overlay.ffmpeg_overlay import FFMPEGNull, FFMPEGOverlay, FFMPEGOverlayVideo
 from gopro_overlay.ffmpeg_profile import load_ffmpeg_profile
 from gopro_overlay.font import load_font
+from gopro_overlay.framemeta_csv import merge_csv_with_gopro
 from gopro_overlay.framemeta_gpx import merge_gpx_with_gopro, timeseries_to_framemeta
 from gopro_overlay.geo import MapRenderer, api_key_finder, MapStyler
 from gopro_overlay.gpmf import GPS_FIXED_VALUES, GPSFix
@@ -246,6 +247,11 @@ if __name__ == "__main__":
 
                         log(f"GPX/FIT Timeseries has {len(fit_or_gpx_timeseries)} data points.. merging...")
                         merge_gpx_with_gopro(fit_or_gpx_timeseries, frame_meta, mode=args.gpx_merge)
+
+                    if args.csv:
+                        csv_timeseries = load_external(args.csv, units)
+                        log(f"CSV file:     {fmtdt(csv_timeseries.min)} -> {fmtdt(csv_timeseries.max)}")
+                        merge_csv_with_gopro(csv_timeseries, frame_meta)
 
                 if args.overlay_size:
                     dimensions = dimension_from(args.overlay_size)

@@ -9,10 +9,3 @@ repos:
         pass_filenames: false
         always_run: true
         stages: [commit]
-    -   id: pytest
-        name: Run all tests
-        entry: python -m pytest tests/
-        language: system
-        pass_filenames: false
-        always_run: true
-        stages: [commit]

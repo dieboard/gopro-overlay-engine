@@ -272,6 +272,8 @@ def at(el) -> Coordinate:
 
 def metric_accessor_from(name: str) -> Callable[[Entry], Optional[pint.Quantity]]:
     accessors = {
+        "street": lambda e: getattr(e, "street", None),
+        "state": lambda e: getattr(e, "state", None),
         "hr": lambda e: e.hr,
         "cadence": lambda e: e.cad,
         "power": lambda e: e.power,
@@ -407,13 +409,22 @@ class Widgets:
     @allow_attributes(
         {"x", "y", "metric", "size", "format", "dp", "units", "align", "cache", "rgb", "outline", "outline_width"})
     def create_metric(self, element, entry, **kwargs) -> Widget:
+        metric_name = attrib(element, "metric")
+
+        if metric_name in ["street", "state"]:
+            formatter = lambda s: str(s) if s is not None else ""
+            converter = lambda s: s
+        else:
+            formatter = quantity_formatter_from(element)
+            converter = self.converters.converter(attrib(element, "units", d=None))
+
         return metric(
             at=at(element),
             entry=entry,
-            accessor=metric_accessor_from(attrib(element, "metric")),
-            formatter=quantity_formatter_from(element),
+            accessor=metric_accessor_from(metric_name),
+            formatter=formatter,
             font=self._font(element, "size", d=16),
-            converter=self.converters.converter(attrib(element, "units", d=None)),
+            converter=converter,
             align=attrib(element, "align", d="left"),
             cache=battrib(element, "cache", d=True),
             fill=rgbattr(element, "rgb", d=(255, 255, 255)),

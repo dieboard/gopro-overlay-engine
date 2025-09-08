@@ -12,7 +12,6 @@ from gopro_overlay import layouts
 from gopro_overlay.dimensions import Dimension
 from gopro_overlay.framemeta import Window
 from gopro_overlay.layout_components import moving_map, journey_map, text, metric, metric_value
-from gopro_overlay.layout_components.address import Address
 from gopro_overlay.point import Coordinate
 from gopro_overlay.timeseries import Entry
 from gopro_overlay.timeunits import timeunits
@@ -747,10 +746,3 @@ class Widgets:
     #
     # def create_cairo_gauge_donut(self, element, entry: ET.Element, **kwargs):
     #     return self.with_cairo(lambda m: m.create_cairo_gauge_donut(element, entry, self.converters, **kwargs))
-
-    @allow_attributes({"x", "y", "size", "align", "rgb", "outline", "outline_width"})
-    def create_address(self, element: ET.Element, entry, **kwargs) -> Widget:
-        return Address(
-            entry=entry,
-            font=self._font(element, "size", d=16),
-        )

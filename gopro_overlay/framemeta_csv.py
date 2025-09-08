@@ -17,8 +17,6 @@ def load_csv_timeseries(filepath, units) -> Timeseries:
                 dt,
                 Entry(
                     dt=dt,
-                    point=Point(lat=float(row["lat"]), lon=float(row["lon"])),
-                    alt=units.Quantity(float(row["alt"]), units.m),
                     street=row["street"],
                     state=row["state"],
                 )

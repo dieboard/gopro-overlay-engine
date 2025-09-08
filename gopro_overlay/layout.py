@@ -5,7 +5,6 @@ from PIL import ImageFont, Image, ImageDraw
 from gopro_overlay.widgets.info import ComparativeEnergy
 from .framemeta import FrameMeta
 from .layout_components import moving_map
-from .layout_components.address import Address
 from .point import Coordinate
 from .units import units
 from .widgets.text import CachingText, Text

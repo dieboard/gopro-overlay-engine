@@ -248,13 +248,12 @@ if __name__ == "__main__":
                         log(f"GPX/FIT Timeseries has {len(fit_or_gpx_timeseries)} data points.. merging...")
                         merge_gpx_with_gopro(fit_or_gpx_timeseries, frame_meta, mode=args.gpx_merge)
 
-                    if args.csv:
-                        csv_timeseries = load_external(args.csv, units)
-                        log(f"CSV file:     {fmtdt(csv_timeseries.min)} -> {fmtdt(csv_timeseries.max)}")
-                        merge_csv_with_gopro(csv_timeseries, frame_meta)
-
                 if args.overlay_size:
                     dimensions = dimension_from(args.overlay_size)
+
+            if args.csv:
+                csv_timeseries = load_external(args.csv, units)
+                merge_csv_with_gopro(csv_timeseries, frame_meta)
 
             if len(frame_meta) < 1:
                 fatal(f"Unable to load GoPro metadata from {inputpath}. Use --debug-metadata to see more information")

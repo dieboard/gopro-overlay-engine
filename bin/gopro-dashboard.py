@@ -197,6 +197,7 @@ if __name__ == "__main__":
                     )
                     video_duration = frame_meta.duration()
                     packets_per_second = 10
+
                 else:
                     inputpath = assert_file_exists(args.input)
 

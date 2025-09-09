@@ -75,7 +75,7 @@ if __name__ == "__main__":
     parser.add_argument("--reverse-geocode-port", default=2322, type=int, help="Reverse geocode port")
 
     parser.add_argument("--simple-output", action="store_true", help="Output date, street and city in multi-line format")
-    parser.add_argument("--street-state-only", "--street-city-state", action="store_true", help="Output time, street, city and state in CSV format")
+    parser.add_argument("--street-city-state", "--street-state-only", action="store_true", help="Output time, street, city and state in CSV format")
 
     args = parser.parse_args()
 
@@ -110,7 +110,7 @@ if __name__ == "__main__":
     locked_2d = lambda e: e.gpsfix in GPS_FIXED_VALUES
     locked_3d = lambda e: e.gpsfix == GPSFix.LOCK_3D.value
 
-    # ts.process(timeseries_process.process_ses("point", lambda i: i.point, alpha=0.45), filter_fn=locked_2d)
+    # ts.process(timeseries_process.process_ses("point", lambda i: i.point, alpha=0.45))
     ts.process_deltas(timeseries_process.calculate_speeds(), skip=packets_per_second * 3)
     ts.process(timeseries_process.calculate_odo())
     ts.process_accel(timeseries_process.calculate_accel(), skip=packets_per_second * 3)
@@ -132,9 +132,9 @@ if __name__ == "__main__":
     dest: Optional[Path] = args.output
 
     with smart_open(dest) as f:
-        if args.street_state_only:
+        if args.street_city_state:
             if not args.reverse_geocode:
-                raise SystemExit("--street-state-only requires --reverse-geocode")
+                raise SystemExit("--street-city-state requires --reverse-geocode")
             writer = csv.DictWriter(f=f, fieldnames=["time", "street", "city", "state"])
             writer.writeheader()
             for entry in filter(filter_fn, ts.items()):
@@ -170,9 +170,9 @@ if __name__ == "__main__":
                 f.write(f"{entry.dt.strftime('%H:%M:%S')} {location_info.get('street', '')} {location_info.get('city', '')} {location_info.get('state', '')}\n")
 
         else:
-            fieldnames = ["packet", "packet_index", "gps_fix", "time", "lat", "lon", "dop", "alt",
+            fieldnames = ["packet", "packet_index", "gps_fix", "date", "lat", "lon", "dop", "alt",
                           "speed", "accel",
-                          "dist", "azi", "odo",
+                          "dist", "time", "azi", "odo",
                           "grad",
                           "accl_x", "accl_y", "accl_z"]
 
@@ -193,7 +193,7 @@ if __name__ == "__main__":
                     "packet": printable_unit(entry.packet),
                     "packet_index": printable_unit(entry.packet_index),
                     "gps_fix": GPSFix(entry.gpsfix).name,
-                    "time": entry.dt.isoformat(),
+                    "date": entry.dt,
                     "dop": printable_unit(entry.dop),
                     "lat": entry.point.lat,
                     "lon": entry.point.lon,
@@ -202,6 +202,7 @@ if __name__ == "__main__":
                     "speed": printable_unit(entry.speed if entry.speed is not None else entry.cspeed),
                     "accel": printable_unit(entry.accel),
                     "dist": printable_unit(entry.dist),
+                    "time": printable_unit(entry.time),
                     "azi": printable_unit(entry.azi),
                     "odo": printable_unit(entry.odo),
                     "accl_x": printable_unit(entry.accl.x) if entry.accl else None,

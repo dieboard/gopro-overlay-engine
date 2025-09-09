@@ -13,7 +13,7 @@ from gopro_overlay.log import fatal
 from gopro_overlay.timeseries import Timeseries
 
 
-def load_external(filepath: Path, units) -> Timeseries:
+def load_external(filepath: Path, units) -> "Timeseries":
     suffix = filepath.suffix.lower()
     if suffix == ".gpx":
         return gpx.load_timeseries(filepath, units)

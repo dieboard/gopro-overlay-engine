@@ -412,7 +412,7 @@ class Widgets:
     def create_metric(self, element, entry, **kwargs) -> Widget:
         metric_name = attrib(element, "metric")
 
-        if metric_name in ["street", "state"]:
+        if metric_name in ["street", "city", "state"]:
             formatter = lambda s: str(s) if s is not None else ""
             converter = lambda s: s
         else:

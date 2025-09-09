@@ -3,7 +3,6 @@ from datetime import datetime
 
 from gopro_overlay.entry import Entry
 from gopro_overlay.log import log
-from gopro_overlay.point import Point
 from gopro_overlay.timeseries import Timeseries
 
 

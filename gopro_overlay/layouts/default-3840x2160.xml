@@ -4,9 +4,14 @@
         <component type="datetime" x="0" y="24" format="%H:%M:%S.%f" truncate="5" size="32" align="right"/>
     </composite>
 
-    <!-- <composite x="260" y="100" name="address">
-        <component type="address" x="0" y="0" size="16" align="right"/>
-    </composite> -->
+    <composite x="16" y="2040" name="location">
+        <component type="text" x="0" y="0" size="16" align="left">Street: </component>
+        <component type="metric" x="60" y="0" metric="street" size="16" align="left" cache="False"/>
+        <component type="text" x="0" y="24" size="16" align="left">City: </component>
+        <component type="metric" x="60" y="24" metric="city" size="16" align="left" cache="False"/>
+        <component type="text" x="0" y="48" size="16" align="left">State: </component>
+        <component type="metric" x="60" y="48" metric="state" size="16" align="left" cache="False"/>
+    </composite>
 
     <composite x="3260" y="0" name="gps_info">
         <frame name="gps-lock" x="226" y="24" width="32" height="32" bg="0,0,0,128" cr="5" opacity="0.4">
@@ -61,13 +66,4 @@
 
     <component type="moving_map" name="moving_map" x="3260" y="100" size="512" zoom="17" corner_radius="35" />
     <component type="journey_map" name="journey_map" x="3260" y="700" size="512" corner_radius="35"/>
-
-    <composite x="16" y="2040" name="location">
-        <component type="text" x="0" y="0" size="16" align="left">Street: </component>
-        <component type="metric" x="60" y="0" metric="street" size="16" align="left" cache="False"/>
-        <component type="text" x="0" y="24" size="16" align="left">City: </component>
-        <component type="metric" x="60" y="24" metric="city" size="16" align="left" cache="False"/>
-        <component type="text" x="0" y="48" size="16" align="left">State: </component>
-        <component type="metric" x="60" y="48" metric="state" size="16" align="left" cache="False"/>
-    </composite>
 </layout>

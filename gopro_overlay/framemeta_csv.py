@@ -19,6 +19,7 @@ def load_csv_timeseries(filepath, units) -> Timeseries:
             entry = Entry(
                 dt=dt,
                 street=row.get("street"),
+                city=row.get("city"),
                 state=row.get("state"),
             )
             timeseries.add(entry)
@@ -41,7 +42,7 @@ def merge_csv_with_gopro(csv_timeseries: Timeseries, gopro_framemeta):
     def processor(gopro_entry):
         try:
             csv_entry = csv_timeseries.get(gopro_entry.dt)
-            gopro_entry.update(street=csv_entry.street, state=csv_entry.state)
+            gopro_entry.update(street=csv_entry.street, city=csv_entry.city, state=csv_entry.state)
         except ValueError:
             pass
 

@@ -75,7 +75,7 @@ if __name__ == "__main__":
     parser.add_argument("--reverse-geocode-port", default=2322, type=int, help="Reverse geocode port")
 
     parser.add_argument("--simple-output", action="store_true", help="Output date, street and city in multi-line format")
-    parser.add_argument("--street-state-only", action="store_true", help="Output time, street and state in CSV format")
+    parser.add_argument("--street-state-only", "--street-city-state", action="store_true", help="Output time, street, city and state in CSV format")
 
     args = parser.parse_args()
 
@@ -135,7 +135,7 @@ if __name__ == "__main__":
         if args.street_state_only:
             if not args.reverse_geocode:
                 raise SystemExit("--street-state-only requires --reverse-geocode")
-            writer = csv.DictWriter(f=f, fieldnames=["time", "street", "state"])
+            writer = csv.DictWriter(f=f, fieldnames=["time", "street", "city", "state"])
             writer.writeheader()
             for entry in filter(filter_fn, ts.items()):
                 location_info = get_location_info(
@@ -147,6 +147,7 @@ if __name__ == "__main__":
                 writer.writerow({
                     "time": entry.dt.isoformat(),
                     "street": location_info.get("street"),
+                    "city": location_info.get("city"),
                     "state": location_info.get("state"),
                 })
         elif args.simple_output:

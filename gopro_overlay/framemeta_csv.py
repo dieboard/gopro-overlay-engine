@@ -13,15 +13,15 @@ def load_csv_timeseries(filepath, units) -> Timeseries:
     with open(filepath, "r") as f:
         reader = csv.DictReader(f)
         for row in reader:
+            if not row or not row.get("time"):
+                continue
             dt = datetime.fromisoformat(row["time"])
-            timeseries.add(
-                dt,
-                Entry(
-                    dt=dt,
-                    street=row["street"],
-                    state=row["state"],
-                )
+            entry = Entry(
+                dt=dt,
+                street=row.get("street"),
+                state=row.get("state"),
             )
+            timeseries.add(entry)
 
     return timeseries
 

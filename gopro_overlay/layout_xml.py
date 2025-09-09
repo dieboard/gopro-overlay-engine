@@ -273,6 +273,7 @@ def at(el) -> Coordinate:
 def metric_accessor_from(name: str) -> Callable[[Entry], Optional[pint.Quantity]]:
     accessors = {
         "street": lambda e: getattr(e, "street", None),
+        "city": lambda e: getattr(e, "city", None),
         "state": lambda e: getattr(e, "state", None),
         "hr": lambda e: e.hr,
         "cadence": lambda e: e.cad,

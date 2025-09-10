@@ -72,13 +72,21 @@ You should receive a GeoJSON response with details about the location. 🌍
 ### Step 5: Reverse Geocoding with Docker
 
 The `gopro-to-csv.py` script can enrich your data with street and city names by using a reverse geocoding service.Once the Photon container is running, you can use the `--reverse-geocode` flag. 
+Now street, city and state are used from docker (and timestamp from coridnations), in the link above you can see all available data that could be added lateron in this extraction step.
 
 
 Here is an example command:
 
 ```shell
-py Bin/gopro-to-csv.py --reverse-geocode --simple-output your_video.MP4 output.csv
-or output.txt
+py Bin/gopro-to-csv.py --street-state-only --simple-output your_video.MP4 output.csv
 ```
+### Step 6: Create a Overlay
 
+The `output.csv` can enrich your doverlay ata with street and city names. You can use the `--location` flag. 
+
+
+Here is an example command:
+
+```shell
+py Bin/gopro-to-csv.py --street-state-only --simple-output your_overlay.mov output.csv
 

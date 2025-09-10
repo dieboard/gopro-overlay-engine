@@ -1,16 +1,17 @@
 import csv
 from datetime import datetime
-
 from gopro_overlay.entry import Entry
 from gopro_overlay.log import log
 from gopro_overlay.timeseries import Timeseries
+from pathlib import Path
 
-
-def load_csv_timeseries(filepath, units) -> Timeseries:
+# This corrected version handles both file paths and in-memory streams
+def load_csv_timeseries(source, units) -> Timeseries:
     timeseries = Timeseries()
 
-    with open(filepath, "r") as f:
-        reader = csv.DictReader(f)
+    # This inner function does the actual reading from a stream
+    def process(stream):
+        reader = csv.DictReader(stream)
         for row in reader:
             if not row or not row.get("time"):
                 continue
@@ -23,9 +24,18 @@ def load_csv_timeseries(filepath, units) -> Timeseries:
             )
             timeseries.add(entry)
 
+    # We check if the input 'source' is a path on the disk
+    if isinstance(source, (str, Path)):
+        # If it is, we open the file and process it
+        with open(source, "r") as f:
+            process(f)
+    else:
+        # If not, we assume it's already a stream (like StringIO) and process it directly
+        process(source)
+
     return timeseries
 
-
+# The merge function doesn't need to be changed
 def merge_csv_with_gopro(csv_timeseries: Timeseries, gopro_framemeta):
     log("Attempting to merge CSV data...")
     if len(csv_timeseries) > 0:
@@ -34,7 +44,7 @@ def merge_csv_with_gopro(csv_timeseries: Timeseries, gopro_framemeta):
         log("CSV timeseries is empty.")
 
     if len(gopro_framemeta) > 0:
-        log(f"GPX/video time range: {gopro_framemeta.date_at(gopro_framemeta.min)} -> {gopro_framemeta.date_at(gopro_framemeta.max)}")
+        log(f"GPX/video time range: {gopro_framemeta.get(gopro_framemeta.min).dt} -> {gopro_framemeta.get(gopro_framemeta.max).dt}")
     else:
         log("GoPro framemeta is empty.")
 

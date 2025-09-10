@@ -13,8 +13,11 @@ from gopro_overlay.widgets.widgets import SimpleFrameSupplier
 from gopro_overlay.framemeta_csv import merge_csv_with_gopro
 from tests.approval import approve_image
 from tests.font import load_test_font
-from tests.test_timeseries import ts
 from tests.testenvironment import is_make
+
+from datetime import datetime, timezone
+from gopro_overlay.timeseries import Timeseries
+from gopro_overlay.entry import Entry
 
 # Need reproducible results for approval tests
 rng = random.Random()

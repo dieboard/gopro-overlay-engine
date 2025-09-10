@@ -6,7 +6,7 @@ from tests.test_timeseries import datetime_of
 from io import StringIO
 
 def test_load_csv():
-    csv_data = "time,street,city,state\\n2023-01-01T12:00:00+00:00,Dummy Street,Dummy City,Dummy State\\n"
+    csv_data = "time,street,city,state\n2023-01-01T12:00:00+00:00,Dummy Street,Dummy City,Dummy State\n"
     timeseries = load_csv_timeseries(StringIO(csv_data), units)
 
     assert len(timeseries) == 1
@@ -16,7 +16,7 @@ def test_load_csv():
     assert entry.state == "Dummy State"
 
 def test_merge_csv():
-    csv_data = "time,street,city,state\\n2023-01-01T12:00:00+00:00,Dummy Street,Dummy City,Dummy State\\n"
+    csv_data = "time,street,city,state\n2023-01-01T12:00:00+00:00,Dummy Street,Dummy City,Dummy State\n"
     csv_timeseries = load_csv_timeseries(StringIO(csv_data), units)
 
     framemeta = Timeseries()

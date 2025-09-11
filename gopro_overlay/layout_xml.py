@@ -736,25 +736,25 @@ class Widgets:
             lock_3d=simple_icon(at, attrib(element, "lock_3d", d="gps_lock_3d.png"), size),
         )
 
-    # def with_cairo(self, f: Callable):
-    #     try:
-    #         import gopro_overlay.layout_xml_cairo
-    #         return f(gopro_overlay.layout_xml_cairo)
-    #     except ModuleNotFoundError:
-    #         raise IOError("This widget needs pycairo to be installed - please see docs") from None
-    #
-    # def create_cairo_circuit_map(self, element: ET.Element, entry, **kwargs):
-    #     return self.with_cairo(lambda m: m.create_cairo_circuit_map(element, entry, self.framemeta, **kwargs))
-    #
-    # def create_cairo_gauge_marker(self, element: ET.Element, entry, **kwargs):
-    #     return self.with_cairo(lambda m: m.create_cairo_gauge_marker(element, entry, self.converters, **kwargs))
-    #
-    # def create_cairo_gauge_round_annotated(self, element: ET.Element, entry, **kwargs):
-    #     return self.with_cairo(
-    #         lambda m: m.create_cairo_gauge_round_annotated(element, entry, self.converters, **kwargs))
-    #
-    # def create_cairo_gauge_arc_annotated(self, element: ET.Element, entry, **kwargs):
-    #     return self.with_cairo(lambda m: m.create_cairo_gauge_arc_annotated(element, entry, self.converters, **kwargs))
-    #
-    # def create_cairo_gauge_donut(self, element, entry: ET.Element, **kwargs):
-    #     return self.with_cairo(lambda m: m.create_cairo_gauge_donut(element, entry, self.converters, **kwargs))
+    def with_cairo(self, f: Callable):
+        try:
+            import gopro_overlay.layout_xml_cairo
+            return f(gopro_overlay.layout_xml_cairo)
+        except ModuleNotFoundError:
+            raise IOError("This widget needs pycairo to be installed - please see docs") from None
+    
+    def create_cairo_circuit_map(self, element: ET.Element, entry, **kwargs):
+        return self.with_cairo(lambda m: m.create_cairo_circuit_map(element, entry, self.framemeta, **kwargs))
+    
+    def create_cairo_gauge_marker(self, element: ET.Element, entry, **kwargs):
+        return self.with_cairo(lambda m: m.create_cairo_gauge_marker(element, entry, self.converters, **kwargs))
+    
+    def create_cairo_gauge_round_annotated(self, element: ET.Element, entry, **kwargs):
+        return self.with_cairo(
+            lambda m: m.create_cairo_gauge_round_annotated(element, entry, self.converters, **kwargs))
+    
+    def create_cairo_gauge_arc_annotated(self, element: ET.Element, entry, **kwargs):
+        return self.with_cairo(lambda m: m.create_cairo_gauge_arc_annotated(element, entry, self.converters, **kwargs))
+    
+    def create_cairo_gauge_donut(self, element, entry: ET.Element, **kwargs):
+        return self.with_cairo(lambda m: m.create_cairo_gauge_donut(element, entry, self.converters, **kwargs))

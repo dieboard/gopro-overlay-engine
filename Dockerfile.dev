@@ -47,14 +47,13 @@ RUN git clone "https://github.com/HOST-Oman/libraqm.git" /tmp/libraqm && \
 # Set the working directory for the container
 WORKDIR /app
 
-# --- NEW SECTION ---
-# Copy the requirements files into the image
-COPY requirements.txt requirements-dev.txt ./
+# --- NEW --- Copy all project files into the image
+COPY . .
 
-# Install the Python packages into the image
+# Install the Python packages AND the project itself in editable mode
 RUN pip install -r requirements.txt --break-system-packages && \
-    pip install -r requirements-dev.txt --break-system-packages
-# --- END NEW SECTION ---
+    pip install -r requirements-dev.txt --break-system-packages && \
+    pip install -e . --break-system-packages
 
 # The final command will just be to start a shell.
 CMD ["bash"]

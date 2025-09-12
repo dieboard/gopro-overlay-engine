@@ -21,6 +21,7 @@ import requests
 from gopro_overlay.gpx import load_timeseries
 from gopro_overlay.loading import GoproLoader
 from gopro_overlay.log import log
+from gopro_overlay.timeunits import timeunits
 from gopro_overlay.units import units
 
 
@@ -74,6 +75,7 @@ if __name__ == "__main__":
     parser.add_argument("--reverse-geocode-port", default=2322, type=int, help="Reverse geocode port")
 
     parser.add_argument("--simple-output", action="store_true", help="Output date, street and city in multi-line format")
+    parser.add_argument("--street-city-state", "--street-state-only", action="store_true", help="Output time, street, city and state in CSV format")
 
     args = parser.parse_args()
 
@@ -108,11 +110,11 @@ if __name__ == "__main__":
     locked_2d = lambda e: e.gpsfix in GPS_FIXED_VALUES
     locked_3d = lambda e: e.gpsfix == GPSFix.LOCK_3D.value
 
-    # ts.process(timeseries_process.process_ses("point", lambda i: i.point, alpha=0.45), filter_fn=locked_2d)
-    ts.process_deltas(timeseries_process.calculate_speeds(), skip=packets_per_second * 3, filter_fn=locked_2d)
-    ts.process(timeseries_process.calculate_odo(), filter_fn=locked_2d)
-    ts.process_accel(timeseries_process.calculate_accel(), skip=packets_per_second * 3, filter_fn=locked_2d)
-    ts.process_deltas(timeseries_process.calculate_gradient(), skip=packets_per_second * 3, filter_fn=locked_3d)  # hack
+    # ts.process(timeseries_process.process_ses("point", lambda i: i.point, alpha=0.45))
+    ts.process_deltas(timeseries_process.calculate_speeds(), skip=packets_per_second * 3)
+    ts.process(timeseries_process.calculate_odo())
+    ts.process_accel(timeseries_process.calculate_accel(), skip=packets_per_second * 3)
+    ts.process_deltas(timeseries_process.calculate_gradient(), skip=packets_per_second * 3)  # hack
     ts.process(timeseries_process.filter_locked())
 
     filter_fn = locked_2d if args.only_locked else lambda e: True
@@ -130,10 +132,35 @@ if __name__ == "__main__":
     dest: Optional[Path] = args.output
 
     with smart_open(dest) as f:
-        if args.simple_output:
+        if args.street_city_state:
+            if not args.reverse_geocode:
+                raise SystemExit("--street-city-state requires --reverse-geocode")
+            writer = csv.DictWriter(f=f, fieldnames=["time", "street", "city", "state"])
+            writer.writeheader()
+            for entry in filter(filter_fn, ts.items()):
+                location_info = get_location_info(
+                    lat=entry.point.lat,
+                    lon=entry.point.lon,
+                    host=args.reverse_geocode_host,
+                    port=args.reverse_geocode_port
+                )
+                writer.writerow({
+                    "time": entry.dt.isoformat(),
+                    "street": location_info.get("street"),
+                    "city": location_info.get("city"),
+                    "state": location_info.get("state"),
+                })
+        elif args.simple_output:
             if not args.reverse_geocode:
                 raise SystemExit("--simple-output requires --reverse-geocode")
-            for entry in filter(filter_fn, ts.items(step=datetime.timedelta(seconds=args.every))):
+
+            if args.every > 0:
+                stepper = ts.stepper(step=timeunits(seconds=args.every))
+                items_iterator = (ts.get(dt) for dt in stepper.steps())
+            else:
+                items_iterator = ts.items()
+
+            for entry in filter(filter_fn, items_iterator):
                 location_info = get_location_info(
                     lat=entry.point.lat,
                     lon=entry.point.lon,
@@ -155,7 +182,13 @@ if __name__ == "__main__":
             writer = csv.DictWriter(f=f, fieldnames=fieldnames)
             writer.writeheader()
 
-            for entry in filter(filter_fn, ts.items(step=datetime.timedelta(seconds=args.every))):
+            if args.every > 0:
+                stepper = ts.stepper(step=timeunits(seconds=args.every))
+                items_iterator = (ts.get(dt) for dt in stepper.steps())
+            else:
+                items_iterator = ts.items()
+
+            for entry in filter(filter_fn, items_iterator):
                 row = {
                     "packet": printable_unit(entry.packet),
                     "packet_index": printable_unit(entry.packet_index),

@@ -10,9 +10,16 @@ from gopro_overlay.layout_xml import layout_from_xml, load_xml_layout, Converter
 from gopro_overlay.privacy import NoPrivacyZone
 from gopro_overlay.timing import PoorTimer
 from gopro_overlay.widgets.widgets import SimpleFrameSupplier
+from gopro_overlay.framemeta_csv import merge_csv_with_gopro
 from tests.approval import approve_image
 from tests.font import load_test_font
 from tests.testenvironment import is_make
+
+from gopro_overlay.timeseries import Timeseries
+from gopro_overlay.entry import Entry
+
+from gopro_overlay.timeseries import Timeseries, Entry
+from datetime import datetime, timezone, timedelta
 
 # Need reproducible results for approval tests
 rng = random.Random()
@@ -23,6 +30,13 @@ framemeta = fake.fake_framemeta(length=timedelta(minutes=10), step=timedelta(sec
 renderer = MapRenderer(cache_dir=arguments.default_config_location, styler=MapStyler())
 
 font = load_test_font()
+
+def ts(*args):
+    series = Timeseries()
+    start_time = datetime.now(timezone.utc)
+    for at, data in args:
+        series.add(Entry(dt=start_time + timedelta(seconds=at), **data))
+    return series
 
 
 @approve_image
@@ -178,3 +192,22 @@ def time_layout(name, layout, repeat=20, dimensions=Dimension(1920, 1080)):
         draw.show()
 
     return draw
+
+
+@approve_image
+def test_render_location_component():
+    csv_timeseries = ts(
+        (0, {"street": "Street", "city": "City", "state": "State"})
+    )
+    merge_csv_with_gopro(csv_timeseries, framemeta)
+
+    xmldoc = """<layout>
+        <component type="text" x="0" y="0" size="16" align="left">Street: </component>
+        <component type="metric" x="60" y="0" metric="street" size="16" align="left" cache="False"/>
+        <component type="text" x="0" y="24" size="16" align="left">City: </component>
+        <component type="metric" x="60" y="24" metric="city" size="16" align="left" cache="False"/>
+        <component type="text" x="0" y="48" size="16" align="left">State: </component>
+        <component type="metric" x="60" y="48" metric="state" size="16" align="left" cache="False"/>
+    </layout>
+    """
+    return do_layout(xmldoc)

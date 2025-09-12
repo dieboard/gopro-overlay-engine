@@ -250,6 +250,10 @@ if __name__ == "__main__":
                 if args.overlay_size:
                     dimensions = dimension_from(args.overlay_size)
 
+            if args.csv:
+                csv_timeseries = load_external(args.csv, units)
+                merge_csv_with_gopro(csv_timeseries, frame_meta)
+
             if len(frame_meta) < 1:
                 fatal(f"Unable to load GoPro metadata from {inputpath}. Use --debug-metadata to see more information")
 

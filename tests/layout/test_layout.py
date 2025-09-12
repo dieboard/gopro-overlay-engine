@@ -15,9 +15,11 @@ from tests.approval import approve_image
 from tests.font import load_test_font
 from tests.testenvironment import is_make
 
-from datetime import datetime, timezone
 from gopro_overlay.timeseries import Timeseries
 from gopro_overlay.entry import Entry
+
+from gopro_overlay.timeseries import Timeseries, Entry
+from datetime import datetime, timezone, timedelta
 
 # Need reproducible results for approval tests
 rng = random.Random()
@@ -28,6 +30,13 @@ framemeta = fake.fake_framemeta(length=timedelta(minutes=10), step=timedelta(sec
 renderer = MapRenderer(cache_dir=arguments.default_config_location, styler=MapStyler())
 
 font = load_test_font()
+
+def ts(*args):
+    series = Timeseries()
+    start_time = datetime.now(timezone.utc)
+    for at, data in args:
+        series.add(Entry(dt=start_time + timedelta(seconds=at), **data))
+    return series
 
 
 @approve_image

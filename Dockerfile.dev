@@ -1,0 +1,60 @@
+# Use Ubuntu as the base
+FROM ubuntu:24.04
+
+# Avoid interactive prompts during installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Automatically accept the EULA for Microsoft fonts
+RUN echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    build-essential \
+    pkg-config \
+    meson \
+    ninja-build \
+    python3.12 \
+    python3.12-venv \
+    python3.12-dev \
+    python3-pip \
+    libcairo2-dev \
+    libjpeg-turbo-progs \
+    libz-dev \
+    libtiff-dev \
+    libjpeg-dev \
+    libopenjp2-7-dev \
+    liblcms2-dev \
+    libwebp-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+    fonts-roboto \
+    ttf-mscorefonts-installer \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Manually clone and build libraqm
+RUN git clone "https://github.com/HOST-Oman/libraqm.git" /tmp/libraqm && \
+    cd /tmp/libraqm && \
+    git checkout v0.10.1 && \
+    meson setup build && \
+    ninja -C build && \
+    ninja -C build install && \
+    ldconfig && \
+    cd / && \
+    rm -rf /tmp/libraqm
+
+# Set the working directory for the container
+WORKDIR /app
+
+# --- NEW SECTION ---
+# Copy the requirements files into the image
+COPY requirements.txt requirements-dev.txt ./
+
+# Install the Python packages into the image
+RUN pip install -r requirements.txt --break-system-packages && \
+    pip install -r requirements-dev.txt --break-system-packages
+# --- END NEW SECTION ---
+
+# The final command will just be to start a shell.
+CMD ["bash"]

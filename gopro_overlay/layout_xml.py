@@ -413,25 +413,33 @@ class Widgets:
         metric_name = attrib(element, "metric")
 
         if metric_name in ["street", "city", "state"]:
-            formatter = lambda s: str(s) if s is not None else ""
-            converter = lambda s: s
+            return text(
+                at=at(element),
+                value=lambda: str(metric_accessor_from(metric_name)(entry()) or ""),
+                font=self._font(element, "size", d=16),
+                align=attrib(element, "align", d="left"),
+                cache=battrib(element, "cache", d=True),
+                fill=rgbattr(element, "rgb", d=(255, 255, 255)),
+                stroke=rgbattr(element, "outline", d=(0, 0, 0)),
+                stroke_width=iattrib(element, "outline_width", d=2),
+            )
         else:
             formatter = quantity_formatter_from(element)
             converter = self.converters.converter(attrib(element, "units", d=None))
 
-        return metric(
-            at=at(element),
-            entry=entry,
-            accessor=metric_accessor_from(metric_name),
-            formatter=formatter,
-            font=self._font(element, "size", d=16),
-            converter=converter,
-            align=attrib(element, "align", d="left"),
-            cache=battrib(element, "cache", d=True),
-            fill=rgbattr(element, "rgb", d=(255, 255, 255)),
-            stroke=rgbattr(element, "outline", d=(0, 0, 0)),
-            stroke_width=iattrib(element, "outline_width", d=2),
-        )
+            return metric(
+                at=at(element),
+                entry=entry,
+                accessor=metric_accessor_from(metric_name),
+                formatter=formatter,
+                font=self._font(element, "size", d=16),
+                converter=converter,
+                align=attrib(element, "align", d="left"),
+                cache=battrib(element, "cache", d=True),
+                fill=rgbattr(element, "rgb", d=(255, 255, 255)),
+                stroke=rgbattr(element, "outline", d=(0, 0, 0)),
+                stroke_width=iattrib(element, "outline_width", d=2),
+            )
 
     @allow_attributes({"x", "y", "metric", "size", "units", "align", "rgb", "outline", "outline_width"})
     def create_metric_unit(self, element: ET.Element, entry, **kwargs) -> Widget:
@@ -742,19 +750,19 @@ class Widgets:
             return f(gopro_overlay.layout_xml_cairo)
         except ModuleNotFoundError:
             raise IOError("This widget needs pycairo to be installed - please see docs") from None
-    
+
     def create_cairo_circuit_map(self, element: ET.Element, entry, **kwargs):
         return self.with_cairo(lambda m: m.create_cairo_circuit_map(element, entry, self.framemeta, **kwargs))
-    
+
     def create_cairo_gauge_marker(self, element: ET.Element, entry, **kwargs):
         return self.with_cairo(lambda m: m.create_cairo_gauge_marker(element, entry, self.converters, **kwargs))
-    
+
     def create_cairo_gauge_round_annotated(self, element: ET.Element, entry, **kwargs):
         return self.with_cairo(
             lambda m: m.create_cairo_gauge_round_annotated(element, entry, self.converters, **kwargs))
-    
+
     def create_cairo_gauge_arc_annotated(self, element: ET.Element, entry, **kwargs):
         return self.with_cairo(lambda m: m.create_cairo_gauge_arc_annotated(element, entry, self.converters, **kwargs))
-    
+
     def create_cairo_gauge_donut(self, element, entry: ET.Element, **kwargs):
         return self.with_cairo(lambda m: m.create_cairo_gauge_donut(element, entry, self.converters, **kwargs))

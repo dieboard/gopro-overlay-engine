@@ -5,9 +5,17 @@ from .ffmpeg_overlay import FFMPEGOptions
 from .log import log
 
 builtin_profiles = {
+    "gpu-test": {
+        "input": [],
+        "output": ["-vcodec", "h264_nvenc"]
+    },
     "nvgpu": {
         "input": ["-hwaccel", "nvdec"],
         "output": ["-vcodec", "h264_nvenc", "-rc:v", "cbr", "-b:v", "25M", "-bf:v", "3", "-profile:v", "high", "-spatial-aq", "true", "-movflags", "faststart"]
+    },
+     "nvgpu-60fps": {
+        "input": ["-hwaccel", "nvdec"],
+        "output": ["-vcodec", "h264_nvenc", "-rc:v", "cbr", "-b:v", "25M", "-bf:v", "3", "-profile:v", "high", "-spatial-aq", "true", "-movflags", "faststart", "-r", "60"]
     },
     "nnvgpu": {
         "input": ["-hwaccel", "cuda", "-hwaccel_output_format", "cuda"],

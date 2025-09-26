@@ -1,13 +1,10 @@
 # Use an official NVIDIA CUDA development image to match your driver
 FROM nvidia/cuda:13.0.1-devel-ubuntu22.04
-
 # Avoid interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
-
 # Enable the 'multiverse' repository for the MS Fonts package
 RUN apt-get update && apt-get install -y software-properties-common && \
     add-apt-repository -y multiverse
-
 # Install system dependencies, including build tools for ffmpeg
 RUN apt-get update && apt-get install -y \
     git \
@@ -33,20 +30,12 @@ RUN apt-get update && apt-get install -y \
     libvpx-dev \
     libfdk-aac-dev \
     && rm -rf /var/lib/apt/lists/*
-
-# Install NVIDIA container runtime libraries
-RUN apt-get update && apt-get install -y \
-    libnvidia-encode-580 \
-    libnvidia-decode-580 \
-    && rm -rf /var/lib/apt/lists/*
-
 # Install ffnvcodec headers required by ffmpeg for CUDA
 RUN git clone https://git.videolan.org/git/ffmpeg/nv-codec-headers.git /tmp/nv-codec-headers && \
     cd /tmp/nv-codec-headers && \
     make install && \
     cd / && \
     rm -rf /tmp/nv-codec-headers
-
 # Build FFmpeg from source with all the correct CUDA/NVENC flags enabled
 RUN git clone https://github.com/FFmpeg/FFmpeg.git /tmp/ffmpeg && \
     cd /tmp/ffmpeg && \
@@ -68,7 +57,6 @@ RUN git clone https://github.com/FFmpeg/FFmpeg.git /tmp/ffmpeg && \
     make install && \
     ldconfig && \
     rm -rf /tmp/ffmpeg
-
 # Manually clone and build libraqm
 RUN git clone "https://github.com/HOST-Oman/libraqm.git" /tmp/libraqm && \
     cd /tmp/libraqm && \
@@ -79,20 +67,11 @@ RUN git clone "https://github.com/HOST-Oman/libraqm.git" /tmp/libraqm && \
     ldconfig && \
     cd / && \
     rm -rf /tmp/libraqm
-
 # Set up the project
 WORKDIR /app
-
-# Copy requirements first for better caching
-COPY requirements.txt requirements-dev.txt ./
-
+COPY . .
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt --break-system-packages && \
-    pip install -r requirements-dev.txt --break-system-packages
-
-# Copy the rest of the application
-COPY . .
-
-RUN pip install -e . --break-system-packages
-
+    pip install -r requirements-dev.txt --break-system-packages && \
+    pip install -e . --break-system-packages
 CMD ["bash"]

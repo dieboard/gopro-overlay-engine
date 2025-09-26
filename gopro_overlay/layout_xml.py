@@ -413,8 +413,16 @@ class Widgets:
         metric_name = attrib(element, "metric")
 
         if metric_name in ["street", "city", "state"]:
-            formatter = lambda s: str(s) if s is not None else ""
-            converter = lambda s: s
+            return text(
+                at=at(element),
+                value=lambda: str(metric_accessor_from(metric_name)(entry()) or ""),
+                font=self._font(element, "size", d=16),
+                align=attrib(element, "align", d="left"),
+                cache=battrib(element, "cache", d=True),
+                fill=rgbattr(element, "rgb", d=(255, 255, 255)),
+                stroke=rgbattr(element, "outline", d=(0, 0, 0)),
+                stroke_width=iattrib(element, "outline_width", d=2),
+            )
         else:
             formatter = quantity_formatter_from(element)
             converter = self.converters.converter(attrib(element, "units", d=None))

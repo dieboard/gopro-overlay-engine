@@ -24,13 +24,13 @@ test_requirements = [
 
 setup(
     name="gopro-overlay",
-    version="0.128.0",
+    version="0.129.0",
     description="Overlay graphics dashboards onto GoPro footage, or create videos from GPX or FIT files",
     long_description=README,
     long_description_content_type="text/markdown",
-    url="https://github.com/time4tea/gopro-dashboard-overlay",
-    author="James Richardson",
-    author_email="james+gopro@time4tea.net",
+    url="https://github.com/dieboard/gopro-overlay-engine",
+    author="DieBoard",
+    author_email="DieBoard@github.com",
     license="MIT",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -71,6 +71,6 @@ setup(
         "console_scripts": []
     },
     project_urls={
-        'Source': 'https://github.com/time4tea/gopro-dashboard-overlay',
+        'Source': 'https://github.com/dieboard/gopro-overlay-engine',
     },
 )

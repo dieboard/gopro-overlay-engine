@@ -73,5 +73,5 @@ COPY . .
 RUN pip install -r requirements.txt
 RUN pip install -r requirements-dev.txt
 RUN pip install -e .
-RUN pip install gopro-overlay
+RUN pip install gopro-overlay==0.128.0
 CMD ["bash"]

@@ -54,7 +54,7 @@ def write_csv_output(f, args, ts, filter_fn):
     if args.street_city_state:
         if not args.reverse_geocode:
             raise SystemExit("--street-city-state requires --reverse-geocode")
-        
+
         writer = csv.DictWriter(f=f, fieldnames=["time", "lat", "lon", "street", "city", "state"])
         writer.writeheader()
 
@@ -65,10 +65,10 @@ def write_csv_output(f, args, ts, filter_fn):
                 host=args.reverse_geocode_host,
                 port=args.reverse_geocode_port
             )
-            
+
             # 1. Get the street name using the fallback logic from before
             street_name = location_info.get("street") or location_info.get("name") or ""
-            
+
             # 2. NEW: Replace spaces with hyphens to create a "safe" name
             safe_street_name = street_name.replace(' ', '-')
 

@@ -35,8 +35,7 @@ def load_frame(ffmpeg_gopro: FFMPEGGoPro, filepath: pathlib.Path, size: Dimensio
     return Image.frombytes(mode="RGBA", size=size.tuple(), data=ffmpeg_gopro.load_frame(filepath, at_time))
 
 
-if __name__ == "__main__":
-
+if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Continually parse a layout file, and render a frame")
     parser.add_argument("--ffmpeg-dir", type=pathlib.Path,
                         help="Directory where ffmpeg/ffprobe located, default=Look in PATH")

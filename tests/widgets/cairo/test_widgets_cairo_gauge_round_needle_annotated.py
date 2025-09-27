@@ -54,5 +54,3 @@ def test_gauge_round_254_slower_speeds():
         ),
         repeat=10
     )
-
-

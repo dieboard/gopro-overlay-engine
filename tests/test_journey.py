@@ -44,4 +44,3 @@ def test_calculating_bounding_box_mix_good_and_bad_gps_values():
 def test_bounding_box_size():
     assert BoundingBox(Point(0,0), Point(1,1)).size() == Coordinate(x=1,y=1)
     assert BoundingBox(Point(-1,-1), Point(1,1)).size() == Coordinate(x=2,y=2)
-

@@ -123,9 +123,9 @@ def test_render_xml_component():
     # Avg: 0.00169, Rate: 590.66
     xmldoc = """<layout>
         <composite name="bob" x="200" y="200">
-            <component type="text" x="0" y="0" size="32">Text</component> 
-            <component type="text" x="50" y="50" size="64">Text</component> 
-            <component type="text" x="150" y="150" size="128" >Text</component> 
+            <component type="text" x="0" y="0" size="32">Text</component>
+            <component type="text" x="50" y="50" size="64">Text</component>
+            <component type="text" x="150" y="150" size="128" >Text</component>
         </composite>
     </layout>
     """
@@ -153,14 +153,14 @@ def test_render_xml_component_with_exclusions():
     # Avg: 0.00180, Rate: 556.84
     xmldoc = """<layout>
         <composite name="bob" x="200" y="200">
-            <component type="text" x="0" y="0" size="32" cache="False">Bob</component> 
-            <component type="text" x="50" y="50" size="64">Bob</component> 
-            <component type="text" x="150" y="150" size="128" >Bob</component> 
+            <component type="text" x="0" y="0" size="32" cache="False">Bob</component>
+            <component type="text" x="50" y="50" size="64">Bob</component>
+            <component type="text" x="150" y="150" size="128" >Bob</component>
         </composite>
         <composite name="alice" x="400" y="200">
-            <component type="text" x="0" y="0" size="32">Alice</component> 
-            <component type="text" x="50" y="50" size="64">Alice</component> 
-            <component type="text" x="150" y="150" size="128" >Alice</component> 
+            <component type="text" x="0" y="0" size="32">Alice</component>
+            <component type="text" x="50" y="50" size="64">Alice</component>
+            <component type="text" x="150" y="150" size="128" >Alice</component>
         </composite>
     </layout>
     """

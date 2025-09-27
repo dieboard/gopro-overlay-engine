@@ -59,9 +59,9 @@ def test_loading_a_simple_gpx_file():
 
 
 def test_bugfix_20_gpsbabel_converted():
-    xml = """<gpx 
-    xmlns="http://www.topografix.com/GPX/1/1" 
-    xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1" 
+    xml = """<gpx
+    xmlns="http://www.topografix.com/GPX/1/1"
+    xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1"
     version="1.1">
   <trk>
     <trkseg>
@@ -89,9 +89,9 @@ def test_bugfix_20_gpsbabel_converted():
 
 
 def test_feature_70_power_converted():
-    xml = """<gpx 
-    xmlns="http://www.topografix.com/GPX/1/1" 
-    xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1" 
+    xml = """<gpx
+    xmlns="http://www.topografix.com/GPX/1/1"
+    xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1"
     version="1.1">
   <trk>
     <trkseg>
@@ -119,9 +119,9 @@ def test_feature_70_power_converted():
 
 def test_discussion_85_speed_elevation_from_gpx():
     xml = """
-    <gpx 
-    xmlns="http://www.topografix.com/GPX/1/1" 
-    xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1" 
+    <gpx
+    xmlns="http://www.topografix.com/GPX/1/1"
+    xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1"
     version="1.1">
   <trk>
    <trkseg>
@@ -130,7 +130,7 @@ def test_discussion_85_speed_elevation_from_gpx():
     <time>2013-06-11T04:04:49Z</time>
     <extensions>
       <gpxtpx:TrackPointExtension>
-        <gpxtpx:speed>6.86</gpxtpx:speed> 
+        <gpxtpx:speed>6.86</gpxtpx:speed>
       </gpxtpx:TrackPointExtension>
     </extensions>
     </trkpt>
@@ -349,4 +349,3 @@ def test_converting_fit_with_dop_to_framemeta():
     fm = timeseries_to_framemeta(ts, units)
 
     assert fm.frames[timeunits(seconds=0)].dop == units.Quantity(1)
-

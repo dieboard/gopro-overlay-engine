@@ -6,4 +6,3 @@ def load_test_font():
         return load_font("Roboto-Medium.ttf")
     except OSError:
         return load_font("trebuc.ttf")
-

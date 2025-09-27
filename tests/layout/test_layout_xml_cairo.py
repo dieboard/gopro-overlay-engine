@@ -14,5 +14,3 @@ def test_cap():
     assert cap_from("square") == LineCap.SQUARE
     assert cap_from("round") == LineCap.ROUND
     assert cap_from("butt") == LineCap.BUTT
-
-

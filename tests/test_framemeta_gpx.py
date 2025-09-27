@@ -28,4 +28,3 @@ def test_converting_framemeta_to_gpx():
     assert gpx.tracks[0].segments[0].points[2].latitude == 3.0
     assert gpx.tracks[0].segments[0].points[2].longitude == 3.0
     assert gpx.tracks[0].segments[0].points[2].elevation == 10.0
-

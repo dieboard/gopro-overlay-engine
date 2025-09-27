@@ -107,4 +107,3 @@ def test_process_odo():
         e=Entry(datetime_of(0), alt=metres(5), dist=metres(15)),
     )
     assert r["codo"].magnitude == 25
-

@@ -19,7 +19,7 @@ simple = {
 
 
 class TestProfiles:
-    
+
     def test_loading_a_profile(self):
         with tempfile.TemporaryDirectory() as tempdir:
             config = Path(tempdir) / "ffmpeg-profiles.json"

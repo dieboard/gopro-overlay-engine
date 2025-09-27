@@ -63,6 +63,3 @@ def test_gauge_sector_arc():
         ),
         repeat=10
     )
-
-
-

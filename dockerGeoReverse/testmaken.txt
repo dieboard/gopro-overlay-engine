@@ -1,0 +1,94 @@
+Stap 1: Unit Tests (De Bouwstenen 🧱)
+Een unit test controleert het kleinste stukje code, meestal één functie, volledig geïsoleerd van de rest van het systeem.
+
+Doel: Werkt de get_location_info functie nog steeds correct, z ZONDER dat de Photon Docker container hoeft te draaien?
+
+Hoe: We gebruiken hiervoor de standaard Python test-frameworks pytest en pytest-mock. We simuleren ("mocken") de netwerkaanvraag naar Photon.
+
+Voorbeeld:
+
+Installeer de benodigde tools (dit hoeft maar één keer):
+
+Bash
+
+pip install pytest pytest-mock
+Maak een nieuw bestand, bijvoorbeeld tests/test_gopro_to_csv.py.
+
+Plaats daarin de volgende testcode:
+
+Python
+
+# In tests/test_gopro_to_csv.py
+from gopro_to_csv import get_location_info # Zorg dat je script importeerbaar is
+
+# Test voor een succesvolle situatie
+def test_get_location_info_success(mocker):
+    # Simuleer een succesvol antwoord van de Photon API
+    mock_response = mocker.Mock()
+    mock_response.json.return_value = {
+        "features": [{"properties": {"street": "Teststraat", "city": "Teststad"}}]
+    }
+    mock_response.raise_for_status.return_value = None
+    mocker.patch("requests.get", return_value=mock_response)
+
+    # Roep de functie aan
+    result = get_location_info(52.0, 5.0, "fakehost", 1234)
+
+    # Controleer het resultaat
+    assert result["street"] == "Teststraat"
+    assert result["city"] == "Teststad"
+
+# Test voor een fout-situatie
+def test_get_location_info_api_error(mocker):
+    # Simuleer een fout van de API
+    mocker.patch("requests.get", side_effect=requests.exceptions.RequestException("API down"))
+
+    # Roep de functie aan
+    result = get_location_info(52.0, 5.0, "fakehost", 1234)
+
+    # Controleer of we een leeg resultaat terugkrijgen
+    assert result == {}
+Draai de tests vanuit je terminal: pytest
+
+Voordeel: Deze tests zijn razendsnel en ideaal om te draaien terwijl je aan het coderen bent.
+
+Stap 2: Integration Tests (De Samenwerking 🤝)
+Een integration test controleert of twee of meer onderdelen van je systeem correct met elkaar praten.
+
+Doel: Kan het gopro-to-csv.py script succesvol communiceren met de echt draaiende photon container via het Docker-netwerk?
+
+Hoe: Je maakt een geautomatiseerd script dat docker-compose gebruikt om de omgeving op te zetten, het script te draaien en het resultaat te controleren.
+
+Dit is iets geavanceerder, maar de essentie is:
+
+Start de photon container (docker-compose up -d photon).
+
+Draai het gopro-script tegen een klein, vast testbestand (test.gpx).
+
+Controleer of de output (test.csv) de verwachte straatnaam bevat.
+
+Stop de photon container (docker-compose stop photon).
+
+Stap 3: End-to-End Tests (De Volledige Workflow ✅)
+Een end-to-end (E2E) test simuleert de volledige workflow, precies zoals een gebruiker die zou uitvoeren. Goed nieuws: je run_process.bat script is al een perfecte E2E-test!
+
+Doel: Werkt het hele proces van begin tot eind nog steeds zoals verwacht na mijn wijzigingen?
+
+Hoe: Formaliseer je handmatige testproces.
+
+Maak een Testset: Maak een map test_data met daarin:
+
+input.gpx: Een klein GPX-bestand met een paar coördinaten waarvan je de locatie kent (bijv. het stadhuis van Almere).
+
+expected_output.csv: Een CSV-bestand dat je handmatig hebt gemaakt en dat precies de output bevat die je van input.gpx verwacht.
+
+Pas je .env bestand aan om deze testbestanden te gebruiken.
+
+Draai de test: Voer je run_process.bat script uit.
+
+Vergelijk het resultaat: Nadat het script klaar is, vergelijk je het gegenereerde output.csv met je expected_output.csv. Als ze identiek zijn, is je E2E-test geslaagd! Dit vergelijken kan handmatig of met een klein extra script.
+
+Aanbevolen Workflow
+Tijdens het ontwikkelen: Verander je code en draai de snelle Unit Tests (pytest) om te controleren of je geen kleine fouten hebt gemaakt.
+
+Voordat je je wijziging afrondt: Draai de volledige End-to-End Test (je run_process.bat met de testset) om 100% zeker te weten dat de hele keten nog steeds werkt.

@@ -67,6 +67,8 @@ RUN git clone "https://github.com/HOST-Oman/libraqm.git" /tmp/libraqm && \
     ldconfig && \
     cd / && \
     rm -rf /tmp/libraqm
+# Progress bar for long operations
+RUN pip install tqdm
 # Set up the project
 WORKDIR /app
 COPY . .

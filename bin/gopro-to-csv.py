@@ -1,8 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/usr/bin/env python3
 
 import argparse
 import csv
 import datetime
+from tqdm import tqdm
 import pathlib
 import sys
 from pathlib import Path
@@ -34,6 +35,7 @@ def get_location_info(lat, lon, host, port):
         data = response.json()
         if data and data.get("features"):
             properties = data["features"][0].get("properties", {})
+            # We are now grabbing more fields from the response
             return {
                 "street": properties.get("street"),
                 "city": properties.get("city"),
@@ -41,6 +43,8 @@ def get_location_info(lat, lon, host, port):
                 "country": properties.get("country"),
                 "postcode": properties.get("postcode"),
                 "name": properties.get("name"),
+                "district": properties.get("district"),
+                "locality": properties.get("locality"),
             }
     except requests.exceptions.RequestException as e:
         log(f"API request failed: {e}")
@@ -55,10 +59,13 @@ def write_csv_output(f, args, ts, filter_fn):
         if not args.reverse_geocode:
             raise SystemExit("--street-city-state requires --reverse-geocode")
 
-        writer = csv.DictWriter(f=f, fieldnames=["time", "lat", "lon", "street", "city", "state"])
+        fieldnames = ["time", "lat", "lon", "street", "city", "state", "district", "locality"]
+        writer = csv.DictWriter(f=f, fieldnames=fieldnames)
         writer.writeheader()
 
-        for entry in filter(filter_fn, ts.items()):
+        # GEWIJZIGD: TQDM toegevoegd
+        items_to_process = list(filter(filter_fn, ts.items()))
+        for entry in tqdm(items_to_process, desc="Processing street names"):
             location_info = get_location_info(
                 lat=entry.point.lat,
                 lon=entry.point.lon,
@@ -66,13 +73,9 @@ def write_csv_output(f, args, ts, filter_fn):
                 port=args.reverse_geocode_port
             )
 
-            # 1. Get the street name using the fallback logic from before
-            street_name = location_info.get("street") or location_info.get("name") or ""
+            best_name = location_info.get("street") or location_info.get("name") or location_info.get("locality") or ""
+            safe_street_name = best_name.replace(' ', '-')
 
-            # 2. NEW: Replace spaces with hyphens to create a "safe" name
-            safe_street_name = street_name.replace(' ', '-')
-
-            # 3. Write the row using the new safe_street_name
             writer.writerow({
                 "time": entry.dt.isoformat(),
                 "lat": entry.point.lat,
@@ -80,7 +83,10 @@ def write_csv_output(f, args, ts, filter_fn):
                 "street": safe_street_name,
                 "city": location_info.get("city", ""),
                 "state": location_info.get("state", ""),
+                "district": location_info.get("district", ""),
+                "locality": location_info.get("locality", ""),
             })
+
     elif args.simple_output:
         if not args.reverse_geocode:
             raise SystemExit("--simple-output requires --reverse-geocode")
@@ -90,18 +96,27 @@ def write_csv_output(f, args, ts, filter_fn):
             items_iterator = (ts.get(dt) for dt in stepper.steps())
         else:
             items_iterator = ts.items()
-
-        for entry in filter(filter_fn, items_iterator):
+        
+        # GEWIJZIGD: TQDM toegevoegd
+        items_to_process = list(filter(filter_fn, items_iterator))
+        for entry in tqdm(items_to_process, desc="Processing simple output"):
             location_info = get_location_info(
                 lat=entry.point.lat,
                 lon=entry.point.lon,
                 host=args.reverse_geocode_host,
                 port=args.reverse_geocode_port
             )
-            f.write(
-                f"{entry.dt.strftime('%H:%M:%S')} {location_info.get('street', '')} {location_info.get('city', '')} {location_info.get('state', '')}\n")
+
+            # NEW: Apply the same fallback logic here for simple_output
+            best_name = location_info.get("street") or location_info.get("name") or location_info.get("locality") or ""
+            city = location_info.get("city", "")
+            state = location_info.get("state", "")
+
+            # NEW: Use the 'best_name' in the output string
+            f.write(f"{entry.dt.strftime('%H:%M:%S')} {best_name} {city} {state}\n")
 
     else:
+        # ... (the rest of your function remains the same) ...
         fieldnames = ["packet", "packet_index", "gps_fix", "date", "lat", "lon", "dop", "alt",
                       "speed", "accel",
                       "dist", "time", "azi", "odo",
@@ -109,7 +124,7 @@ def write_csv_output(f, args, ts, filter_fn):
                       "accl_x", "accl_y", "accl_z"]
 
         if args.reverse_geocode:
-            fieldnames.extend(["name", "street", "city", "country", "postcode"])
+            fieldnames.extend(["name", "street", "city", "country", "postcode", "district", "locality"])
 
         writer = csv.DictWriter(f=f, fieldnames=fieldnames)
         writer.writeheader()
@@ -119,8 +134,10 @@ def write_csv_output(f, args, ts, filter_fn):
             items_iterator = (ts.get(dt) for dt in stepper.steps())
         else:
             items_iterator = ts.items()
-
-        for entry in filter(filter_fn, items_iterator):
+        
+        # GEWIJZIGD: TQDM toegevoegd
+        items_to_process = list(filter(filter_fn, items_iterator))
+        for entry in tqdm(items_to_process, desc="Processing detailed CSV"):
             row = {
                 "packet": printable_unit(entry.packet),
                 "packet_index": printable_unit(entry.packet_index),
@@ -190,10 +207,15 @@ if __name__ == "__main__":
     source = assert_file_exists(args.input)
 
     ffmpeg_gopro = FFMPEGGoPro(FFMPEG(args.ffmpeg_dir))
+    
+    # TOEGEVOEGD: Extra print statements voor feedback
+    print(f"INFO: Loading data from '{source.name}'...")
 
     if args.gpx:
+        print("INFO: Input is a GPX file.")
         ts = load_timeseries(source, units)
     else:
+        print("INFO: Input is a video file.")
         counter = ReasonCounter()
 
         loader = GoproLoader(
@@ -213,17 +235,25 @@ if __name__ == "__main__":
         gpmd_filters.poor_report(counter)
 
         ts = gopro.framemeta
+    
+    print(f"INFO: Loaded {len(ts)} initial data points.")
+
+    if not args.gpx:
+        print("INFO: Processing data (calculating speed, distance, etc.)...")   
 
     packets_per_second = 18
     locked_2d = lambda e: e.gpsfix in GPS_FIXED_VALUES
     locked_3d = lambda e: e.gpsfix == GPSFix.LOCK_3D.value
 
-    # ts.process(timeseries_process.process_ses("point", lambda i: i.point, alpha=0.45))
-    ts.process_deltas(timeseries_process.calculate_speeds(), skip=packets_per_second * 3)
-    ts.process(timeseries_process.calculate_odo())
-    ts.process_accel(timeseries_process.calculate_accel(), skip=packets_per_second * 3)
-    ts.process_deltas(timeseries_process.calculate_gradient(), skip=packets_per_second * 3)  # hack
-    ts.process(timeseries_process.filter_locked())
+    if not args.gpx:
+        print("INFO: Processing data (calculating speed, distance, etc.)...")
+        ts.process_deltas(timeseries_process.calculate_speeds(), skip=packets_per_second * 3)
+        ts.process(timeseries_process.calculate_odo())
+        ts.process_accel(timeseries_process.calculate_accel(), skip=packets_per_second * 3)
+        ts.process_deltas(timeseries_process.calculate_gradient(), skip=packets_per_second * 3)  # hack
+        ts.process(timeseries_process.filter_locked())
+    else:
+        print("INFO: GPX file loaded. Skipping redundant calculations.")
 
     filter_fn = locked_2d if args.only_locked else lambda e: True
 
@@ -238,6 +268,8 @@ if __name__ == "__main__":
 
 
     dest: Optional[Path] = args.output
+    
+    print(f"INFO: Writing output to '{dest if dest else 'stdout'}'...")
 
     # This is the new logic that opens the file and calls the function above.
     if dest is None or str(dest) == "-":
@@ -245,5 +277,7 @@ if __name__ == "__main__":
         write_csv_output(sys.stdout, args, ts, filter_fn)
     else:
         # The output is a file, so we open it with the correct encoding
-        with open(dest, "w", encoding="utf-8-sig", newline="") as f:
+        with open(dest, "w", encoding="utf-8", newline="") as f:
             write_csv_output(f, args, ts, filter_fn)
+            
+    print("INFO: Done.")

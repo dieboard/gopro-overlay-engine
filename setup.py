@@ -50,6 +50,7 @@ setup(
         "gopro_overlay.layouts",
         "gopro_overlay.widgets",
         "gopro_overlay.widgets.cairo",
+        "gopro_overlay.layout_components",
     ],
     install_requires=requires,
     tests_require=test_requirements,

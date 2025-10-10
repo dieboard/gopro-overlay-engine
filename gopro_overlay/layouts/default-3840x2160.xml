@@ -1,24 +1,24 @@
 <layout>
     <composite x="260" y="30" name="date_and_time">
-        <component type="datetime" x="0" y="0" format="%Y/%m/%d" size="16" align="right"/>
-        <component type="datetime" x="0" y="24" format="%H:%M:%S.%f" truncate="5" size="32" align="right"/>
+        <component type="datetime" x="0" y="0" format="%Y/%m/%d" size="32" align="right"/>
+        <component type="datetime" x="0" y="24" format="%H:%M:%S.%f" truncate="5" size="48" align="right"/>
     </composite>
 
-   <composite x="16" y="1920" name="location">
-     <component type="text" x="0" y="0" size="64" align="left">Street: </component>
-     <component type="metric" x="200" y="0" metric="street" size="64" align="left" cache="False"/>
-     
-     <component type="text" x="0" y="80" size="64" align="left">City: </component>
-     <component type="metric" x="200" y="80" metric="city" size="64" align="left" cache="False"/>
-     
-     <component type="text" x="0" y="160" size="64" align="left">State: </component>
-     <component type="metric" x="200" y="160" metric="state" size="64" align="left" cache="False"/>
- </composite>
+    <composite x="16" y="1920" name="location">
+        <component type="text" x="0" y="0" size="64" align="left">Street: </component>
+        <component type="metric" x="200" y="0" metric="street" size="64" align="left" cache="False"/>
+        
+        <component type="text" x="0" y="80" size="64" align="left">City: </component>
+        <component type="metric" x="200" y="80" metric="city" size="64" align="left" cache="False"/>
+        
+        <component type="text" x="0" y="160" size="64" align="left">State: </component>
+        <component type="metric" x="200" y="160" metric="state" size="64" align="left" cache="False"/>
+    </composite>
 
     <composite x="3260" y="0" name="gps_info">
         <frame name="gps-lock" x="226" y="24" width="32" height="32" bg="0,0,0,128" cr="5" opacity="0.4">
             <component type="gps-lock-icon" size="32"/>
-         </frame>
+        </frame>
 
         <composite y="36">
             <component type="text" x="0" y="0" size="16" align="left">GPS INFO</component>
@@ -29,8 +29,8 @@
         </composite>
     </composite>
 
-    <composite x="16" y="1800" name="big_mph">
-        <component type="metric_unit" metric="speed" units="speed" size="16">{:~c}</component>
+    <composite x="16" y="1750" name="big_mph">
+        <component type="metric_unit" metric="speed" units="speed" size="32">{:~c}</component>
         <component type="metric" x="0" y="0" metric="speed" units="speed" dp="0" size="160" />
     </composite>
 
@@ -66,6 +66,15 @@
         <component type="metric" x="-70" y="18" metric="hr" dp="0" size="32" align="right"/>
     </composite>
 
+    <!-- MAPS & CAIRO -->
     <component type="moving_map" name="moving_map" x="3260" y="100" size="512" zoom="17" corner_radius="35" />
     <component type="journey_map" name="journey_map" x="3260" y="700" size="512" corner_radius="35"/>
+
+    <!-- NEW: CAIRO MAP ADDED -->
+    <!-- Positioned at the same x/y as moving_map. Give it a unique name. -->
+    <composite x="3260" y="600" name="cairo_map">
+        <translate y="40">
+            <component type="cairo-circuit-map" size="512" line-width="0.02" rotate="0" outline="0,0,255,255" loc-size="0.02" loc-fill="0,0,255" loc-outline="0,0,255"/>
+        </translate>
+    </composite>
 </layout>

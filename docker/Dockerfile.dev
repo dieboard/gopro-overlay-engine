@@ -69,9 +69,12 @@ RUN git clone "https://github.com/HOST-Oman/libraqm.git" /tmp/libraqm && \
     rm -rf /tmp/libraqm
 # Progress bar for long operations
 RUN pip install tqdm
+# pip upgrade to support --break-system-packages
+RUN python3 -m pip install --upgrade pip
+# Install PyCairo for graphics widgets
+RUN pip install pycairo --break-system-packages
 # Set up the project
 WORKDIR /app
 COPY . .
-RUN pip install --upgrade pip && \
-    pip install .[dev] --break-system-packages
+RUN pip install  .[dev] --break-system-packages
 CMD ["bash"]

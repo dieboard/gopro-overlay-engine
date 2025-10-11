@@ -220,7 +220,7 @@ class Frame(Widget):
                 outline=self.outline
             )
 
-        image.paste(rect, (0, 0), self.mask)
+        image.paste(rect, (0, 0), rect)
 
 
 class FrameSupplier:

@@ -19,7 +19,8 @@ from .widgets.cairo.reading import Reading
 from .widgets.widgets import Widget
 
 
-@allow_attributes({"size", "rotate", "fill", "outline", "line-width", "loc-fill", "loc-outline", "loc-size"})
+@allow_attributes(
+    {"size", "rotate", "fill", "outline", "line-width", "loc-fill", "loc-outline", "loc-size", "background"})
 def create_cairo_circuit_map(element, entry, timeseries, **kwargs) -> Widget:
     size = iattrib(element, "size", d=256)
     rotation = iattrib(element, "rotate", d=0)
@@ -41,6 +42,7 @@ def create_cairo_circuit_map(element, entry, timeseries, **kwargs) -> Widget:
             )
         ),
         rotation=rotation,
+        background=rgbattr(element, "background", d=None)
     )
 
 

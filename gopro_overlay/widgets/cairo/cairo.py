@@ -84,19 +84,28 @@ def to_pillow(surface: cairo.ImageSurface) -> Image:
         raise Defect(f"Only support ARGB32 images, not {format}")
 
     with surface.get_data() as memory:
-        return Image.frombuffer("RGBA", size, memory.tobytes(), 'raw', "BGRa", stride)
+        # First create a pillow image in RGBa mode - this is RGBA with *premultiplied* alpha
+        # This is what Cairo gives us. https://www.cairographics.org/manual/cairo-Image-Surfaces.html#cairo-format-t
+        i = Image.frombuffer("RGBa", size, memory.tobytes(), 'raw', "BGRa", stride)
+        # Then convert to RGBA - this will undo the premultiplication
+        return i.convert("RGBA")
 
 
 class CairoAdapter(Widget):
 
-    def __init__(self, size: Dimension, widget: CairoWidget, rotation=0):
+    def __init__(self, size: Dimension, widget: CairoWidget, rotation=0, background: Optional[Tuple] = None):
         self.size = size
         self.rotation = rotation
         self.widget = widget
+        self.background = background
 
     def draw(self, image: Image, draw: ImageDraw):
         surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.size.x, self.size.y)
         ctx = cairo.Context(surface)
+
+        if self.background:
+            set_source(ctx, self.background)
+            ctx.paint()
         ctx.scale(surface.get_width(), surface.get_height())
         ctx.translate(0.5, 0.5)
 

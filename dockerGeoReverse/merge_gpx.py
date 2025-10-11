@@ -5,7 +5,7 @@ from datetime import timedelta
 
 def merge_gpx_files(output_file, *gpx_files):
     """
-    Merges multiple GPX files and removes the time gaps between them.
+    Merges multiple GPX files intelligently by creating a continuous timeline.
     """
     merged_gpx = gpxpy.gpx.GPX()
     gpx_track = gpxpy.gpx.GPXTrack()
@@ -13,66 +13,54 @@ def merge_gpx_files(output_file, *gpx_files):
     gpx_segment = gpxpy.gpx.GPXTrackSegment()
     gpx_track.segments.append(gpx_segment)
 
-    last_timestamp = None
-    total_duration = timedelta()
+    # This will keep track of the end time of the last point added.
+    timeline_cursor = None
 
-    print(f"Merging {len(gpx_files)} GPX files...")
+    print(f"Merging {len(gpx_files)} GPX files with new logic...")
 
-    for i, file_path in enumerate(gpx_files):
+    for file_path in gpx_files:
         try:
             with open(file_path, 'r', encoding='utf-8') as gpx_file:
                 gpx = gpxpy.parse(gpx_file)
-
-                if not gpx.tracks:
-                    print(f"Warning: {file_path} contains no tracks. Skipping.")
-                    continue
-
                 print(f"Processing '{file_path}'...")
-                
+
                 all_points = [point for track in gpx.tracks for segment in track.segments for point in segment.points]
-                
+
                 if not all_points:
-                    print(f"Warning: {file_path} contains no points. Skipping.")
+                    print(f"  -> Warning: File contains no points. Skipping.")
                     continue
 
-                # --- FIX IS HERE ---
-                # Use the get_duration() method, which returns seconds
-                file_duration_seconds = gpx.get_duration()
-                if file_duration_seconds is None:
-                    file_duration_seconds = 0
+                first_point_time_in_file = all_points[0].time
+
+                # If this is the first file, the timeline starts with its first point.
+                if timeline_cursor is None:
+                    timeline_cursor = first_point_time_in_file
                 
-                total_duration += timedelta(seconds=file_duration_seconds)
-                # --- END OF FIX ---
+                # Add a 1-second gap between clips for clarity
+                timeline_cursor += timedelta(seconds=1)
 
-                if i == 0:
-                    gpx_segment.points.extend(all_points)
-                    last_timestamp = all_points[-1].time
-                else:
-                    current_start_time = all_points[0].time
-                    # Add a small buffer of 1 second to the gap to ensure continuity
-                    time_gap = current_start_time - (last_timestamp + timedelta(seconds=1))
-
-                    print(f"  Detected time gap. Adjusting timestamps by {time_gap}...")
+                for point in all_points:
+                    # Calculate how far into its own timeline this point is
+                    delta_from_start = point.time - first_point_time_in_file
                     
-                    adjusted_points = []
-                    for point in all_points:
-                        point.time -= time_gap
-                        adjusted_points.append(point)
+                    # Apply that delta to our continuous timeline cursor
+                    point.time = timeline_cursor + delta_from_start
                     
-                    gpx_segment.points.extend(adjusted_points)
-                    last_timestamp = adjusted_points[-1].time
+                    # Add the adjusted point to our new, merged segment
+                    gpx_segment.points.append(point)
 
-        except FileNotFoundError:
-            print(f"Error: File not found at '{file_path}'. Skipping.")
+                # After processing all points in a file, update the cursor to the last point's time
+                if gpx_segment.points:
+                    timeline_cursor = gpx_segment.points[-1].time
+
         except Exception as e:
-            print(f"An error occurred processing '{file_path}': {e}. Skipping.")
+            print(f"  -> An error occurred processing '{file_path}': {e}. Skipping.")
 
     print(f"\nWriting merged GPX to '{output_file}'...")
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(merged_gpx.to_xml())
         
-    print(f"Merge complete! Final calculated duration: {total_duration}")
-
+    print("Merge complete!")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Merge multiple GPX files and remove time gaps.")

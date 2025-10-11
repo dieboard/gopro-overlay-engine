@@ -50,7 +50,6 @@ class CairoCircuitPath(CairoWidget):
         journey = self.journey()
 
         with saved(context):
-            context.set_antialias(cairo.ANTIALIAS_GOOD)
             start = journey.locations[0]
             context.move_to(*(self.scale(start)))
 

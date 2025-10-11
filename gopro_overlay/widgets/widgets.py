@@ -220,9 +220,7 @@ class Frame(Widget):
                 outline=self.outline
             )
 
-        rect.putalpha(self.mask)
-
-        image.alpha_composite(rect, (0, 0))
+        image.paste(rect, (0, 0), self.mask)
 
 
 class FrameSupplier:

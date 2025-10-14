@@ -74,7 +74,7 @@
     <!-- Positioned at the same x/y as moving_map. Give it a unique name. -->
     <composite x="3260" y="600" name="cairo_map">
         <translate y="40">
-            <component type="cairo-circuit-map" size="512" line-width="0.02" rotate="0" outline="0,0,255,255" loc-size="0.02" loc-fill="0,0,255" loc-outline="0,0,255"/>
+            <component type="cairo-circuit-map" size="512" rotate="270" line-width="0.02" outline="0,0,255,255" loc-size="0.02" loc-fill="0,0,255" loc-outline="0,0,255"/>
         </translate>
     </composite>
 </layout>

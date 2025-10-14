@@ -34,7 +34,7 @@ class InProcessExecution:
                     process.stdin.close()
                 # really long wait as FFMPEG processes all the mpeg input file - not sure how to prevent this atm
                 log("Waiting for ffmpeg to complete...")
-                returncode = process.wait(5 * 60)
+                returncode = process.wait(60 * 60)
                 log(f"FFMPEG Exited with status code: {returncode}")
         except FileNotFoundError:
             raise IOError(f"Unable to execute the process - is '{cmd[0]}' installed") from None

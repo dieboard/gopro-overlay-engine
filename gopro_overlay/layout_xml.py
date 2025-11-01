@@ -273,6 +273,8 @@ def at(el) -> Coordinate:
 def metric_accessor_from(name: str) -> Callable[[Entry], Optional[pint.Quantity]]:
     accessors = {
         "street": lambda e: getattr(e, "street", None),
+        "locality": lambda e: getattr(e, "locality", None),
+        "district": lambda e: getattr(e, "district", None),
         "city": lambda e: getattr(e, "city", None),
         "state": lambda e: getattr(e, "state", None),
         "hr": lambda e: e.hr,
@@ -412,7 +414,7 @@ class Widgets:
     def create_metric(self, element, entry, **kwargs) -> Widget:
         metric_name = attrib(element, "metric")
 
-        if metric_name in ["street", "city", "state"]:
+        if metric_name in ["street", "locality", "district", "city", "state"]:
             return text(
                 at=at(element),
                 value=lambda: str(metric_accessor_from(metric_name)(entry()) or ""),

@@ -21,6 +21,8 @@ def load_csv_timeseries(source, units) -> Timeseries:
             entry = Entry(
                 dt=dt,
                 street=row.get("street"),
+                locality=row.get("locality"),
+                district=row.get("district"),
                 city=row.get("city"),
                 state=row.get("state"),
             )
@@ -57,7 +59,13 @@ def merge_csv_with_gopro(csv_timeseries: Timeseries, gopro_framemeta):
         nonlocal success, failure
         try:
             csv_entry = csv_timeseries.get(gopro_entry.dt)
-            gopro_entry.update(street=csv_entry.street, city=csv_entry.city, state=csv_entry.state)
+            gopro_entry.update(
+                street=csv_entry.street,
+                locality=csv_entry.locality,
+                district=csv_entry.district,
+                city=csv_entry.city,
+                state=csv_entry.state
+            )
             success += 1
         except ValueError:
             failure += 1

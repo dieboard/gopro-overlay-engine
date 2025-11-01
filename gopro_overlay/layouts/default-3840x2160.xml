@@ -6,19 +6,19 @@
 
     <composite x="16" y="1760" name="location">
         <component type="text" x="0" y="0" size="64" align="left">Street: </component>
-        <component type="metric" x="200" y="0" metric="street" size="64" align="left" cache="False"/>
+        <component type="metric" x="205" y="0" metric="street" size="64" align="left" cache="False"/>
 
         <component type="text" x="0" y="80" size="64" align="left">Locality: </component>
-        <component type="metric" x="200" y="80" metric="locality" size="64" align="left" cache="False"/>
+        <component type="metric" x="260" y="80" metric="locality" size="64" align="left" cache="False"/>
         
         <component type="text" x="0" y="160" size="64" align="left">District: </component>
-        <component type="metric" x="200" y="160" metric="district" size="64" align="left" cache="False"/>
+        <component type="metric" x="250245" y="160" metric="district" size="64" align="left" cache="False"/>
         
         <component type="text" x="0" y="240" size="64" align="left">City: </component>
-        <component type="metric" x="200" y="240" metric="city" size="64" align="left" cache="False"/>
+        <component type="metric" x="150" y="240" metric="city" size="64" align="left" cache="False"/>
         
         <component type="text" x="0" y="320" size="64" align="left">State: </component>
-        <component type="metric" x="200" y="320" metric="state" size="64" align="left" cache="False"/>
+        <component type="metric" x="180" y="320" metric="state" size="64" align="left" cache="False"/>
     </composite>
 
     <composite x="3260" y="0" name="gps_info">
@@ -35,7 +35,7 @@
         </composite>
     </composite>
 
-    <composite x="16" y="1750" name="big_mph">
+    <composite x="16" y="1590" name="big_mph">
         <component type="metric_unit" metric="speed" units="speed" size="32">{:~c}</component>
         <component type="metric" x="0" y="0" metric="speed" units="speed" dp="0" size="160" />
     </composite>

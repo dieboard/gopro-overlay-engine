@@ -21,7 +21,7 @@ def filter_gps_jumps(framemeta: FrameMeta, max_speed):
 
         previous = framemeta[index - 1]
         metres = entry.point.distance(previous.point)
-        seconds = (entry.timestamp - previous.timestamp).timedelta().total_seconds()
+        seconds = (entry.timestamp - previous.timestamp).to_timedelta().total_seconds()
         if seconds > 0:
             speed = metres / seconds
             if speed > max_speed:
@@ -36,9 +36,6 @@ def filter_gps_jumps(framemeta: FrameMeta, max_speed):
             framemeta[i].point = first_good_point
             framemeta[i].gpsfix = GPSFix.LOCK_2D
             framemeta[i].dop = 10.0
-
-        framemeta[first_good_sample].gpsfix = GPSFix.LOCK_2D
-        framemeta[first_good_sample].dop = 10.0
 
         return first_good_sample
 

@@ -69,7 +69,9 @@ if __name__ == "__main__":
     fm = gopro.framemeta
 
     log(f"Filtering GPS Jumps, max speed=50 m/s")
-    filter_gps_jumps(fm, max_speed=50)
+    corrected = filter_gps_jumps(fm, max_speed=50)
+    if corrected > 0:
+        log(f"Corrected {corrected} GPS points at start of recording")
 
     log("Generating GPX")
 

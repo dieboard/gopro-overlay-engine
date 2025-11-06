@@ -1,6 +1,7 @@
 from gopro_overlay.framemeta import FrameMeta
 from gopro_overlay.gpmf.gpmf import GPSFix
 from gopro_overlay.point import Point
+from pint import DimensionalityError
 
 
 def filter_gps_jumps(framemeta: FrameMeta, max_speed):
@@ -21,7 +22,11 @@ def filter_gps_jumps(framemeta: FrameMeta, max_speed):
 
         previous = framemeta[index - 1]
         metres = entry.point.distance(previous.point)
-        seconds = (entry.timestamp - previous.timestamp).to_timedelta().total_seconds()
+        try:
+            seconds = (entry.timestamp - previous.timestamp).to_timedelta().total_seconds()
+        except DimensionalityError:
+            seconds = (entry.timestamp - previous.timestamp).magnitude
+
         if seconds > 0:
             speed = metres / seconds
             if speed > max_speed:

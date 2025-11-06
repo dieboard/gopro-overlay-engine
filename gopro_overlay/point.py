@@ -3,6 +3,7 @@ import math
 from typing import Tuple
 
 from gopro_overlay.units import units
+from haversine import haversine
 
 
 class Coordinate:
@@ -54,6 +55,9 @@ class Point:
 
     def __repr__(self):
         return str(self)
+
+    def distance(self, other):
+        return haversine((self.lat, self.lon), (other.lat, other.lon), unit="m")
 
 
 class Point3:

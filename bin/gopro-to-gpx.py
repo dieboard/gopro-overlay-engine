@@ -14,6 +14,7 @@ from gopro_overlay.counter import ReasonCounter
 from gopro_overlay.ffmpeg import FFMPEG
 from gopro_overlay.ffmpeg_gopro import FFMPEGGoPro
 from gopro_overlay.framemeta_gpx import framemeta_to_gpx
+from gopro_overlay.framemeta_modifiers import filter_gps_jumps
 from gopro_overlay.gpmf import GPS_FIXED_VALUES
 from gopro_overlay.loading import GoproLoader
 from gopro_overlay.log import log
@@ -36,6 +37,11 @@ if __name__ == "__main__":
     parser.add_argument("--gps-speed-max-units", default="kph", help="Units for --gps-speed-max")
     parser.add_argument("--gps-bbox-lon-lat", action=BBoxArgs,
                         help="Define GPS Bounding Box, anything outside will be considered 'Not Locked' - minlon,minlat,maxlon,maxlat")
+
+    parser.add_argument("--gps-jump-speed", type=float,
+                        help="Filter GPS Jumps. If specified, sets the max speed in m/s. "
+                             "Algorithm will find first point that doesn't exceed this speed, "
+                             "and then set all previous points to that location.")
 
     parser.add_argument("input", type=pathlib.Path, help="Input MP4 file")
     parser.add_argument("output", type=pathlib.Path, nargs="?", default="-", help="Output GPX file (default stdout)")
@@ -66,6 +72,10 @@ if __name__ == "__main__":
     gpmd_filters.poor_report(counter)
 
     fm = gopro.framemeta
+
+    if args.gps_jump_speed:
+        log(f"Filtering GPS Jumps, max speed={args.gps_jump_speed} m/s")
+        filter_gps_jumps(fm, max_speed=args.gps_jump_speed)
 
     log("Generating GPX")
 

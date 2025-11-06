@@ -256,7 +256,7 @@ if __name__ == "__main__":
     else:
         print("INFO: GPX file loaded. Skipping redundant calculations.")
 
-    log(f"Filtering GPS Jumps, max speed=50 m/s")
+    log(f"Filtering GPS Jumps, max speed=50 m's")
     corrected = filter_gps_jumps(ts, max_speed=50)
     if corrected > 0:
         log(f"Corrected {corrected} GPS points at start of recording")

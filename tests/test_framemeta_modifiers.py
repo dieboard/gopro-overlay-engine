@@ -41,7 +41,7 @@ def test_filter_gps_jumps():
         dop=1.0,
     ))
 
-    filter_gps_jumps(framemeta, max_speed=20)
+    filter_gps_jumps(framemeta, max_speed=50)
 
     assert framemeta[0].point == Point(52.1008679, 5.0604441)
     assert framemeta[1].point == Point(52.1008679, 5.0604441)

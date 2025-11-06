@@ -38,11 +38,6 @@ if __name__ == "__main__":
     parser.add_argument("--gps-bbox-lon-lat", action=BBoxArgs,
                         help="Define GPS Bounding Box, anything outside will be considered 'Not Locked' - minlon,minlat,maxlon,maxlat")
 
-    parser.add_argument("--gps-jump-speed", type=float,
-                        help="Filter GPS Jumps. If specified, sets the max speed in m/s. "
-                             "Algorithm will find first point that doesn't exceed this speed, "
-                             "and then set all previous points to that location.")
-
     parser.add_argument("input", type=pathlib.Path, help="Input MP4 file")
     parser.add_argument("output", type=pathlib.Path, nargs="?", default="-", help="Output GPX file (default stdout)")
 
@@ -73,9 +68,8 @@ if __name__ == "__main__":
 
     fm = gopro.framemeta
 
-    if args.gps_jump_speed:
-        log(f"Filtering GPS Jumps, max speed={args.gps_jump_speed} m/s")
-        filter_gps_jumps(fm, max_speed=args.gps_jump_speed)
+    log(f"Filtering GPS Jumps, max speed=50 m/s")
+    filter_gps_jumps(fm, max_speed=50)
 
     log("Generating GPX")
 

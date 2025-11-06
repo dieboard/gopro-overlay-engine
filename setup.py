@@ -16,6 +16,7 @@ requires = [
     "progressbar2==4.2.0",
     "requests==2.31.0",
     "sqlitedict==2.1.0",
+    "haversine==2.8.0",
 ]
 
 test_requirements = [

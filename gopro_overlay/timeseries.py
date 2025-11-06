@@ -115,3 +115,48 @@ class Stepper:
         while running <= end:
             yield running
             running += self._step
+
+
+class MovingAverage:
+    def __init__(self):
+        self._items = {}
+        self._keys = []
+
+    def add(self, key, item):
+        self._items[key] = item
+        self._keys.append(key)
+
+    def get(self, key):
+        if key in self._items:
+            return self._items[key]
+        if key < self._keys[0]:
+            return self._items[self._keys[0]]
+        if key > self._keys[-1]:
+            return self._items[self._keys[-1]]
+
+        j = bisect.bisect_left(self._keys, key)
+        i = j - 1
+
+        key_i = self._keys[i]
+        key_j = self._keys[j]
+
+        item_i = self._items[key_i]
+        item_j = self._items[key_j]
+
+        if not isinstance(item_i, (int, float)) or not isinstance(item_j, (int, float)):
+            return item_i
+
+        time_diff = (key_j - key_i).total_seconds()
+        if time_diff == 0:
+            return item_i
+
+        lookup_diff = (key - key_i).total_seconds()
+        grad = (item_j - item_i) / time_diff
+
+        return item_i + (grad * lookup_diff)
+
+    def min(self):
+        return min(self._items.values())
+
+    def max(self):
+        return max(self._items.values())

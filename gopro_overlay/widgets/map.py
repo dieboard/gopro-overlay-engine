@@ -82,9 +82,9 @@ class MaybeRoundedBorder:
 
 
 class JourneyMap(Widget):
-    def __init__(self, timeseries, at, location, renderer, size=256, corner_radius=None, opacity=0.7,
+    def __init__(self, journey, at, location, renderer, size=256, corner_radius=None, opacity=0.7,
                  privacy_zone=NoPrivacyZone()):
-        self.timeseries = timeseries
+        self.journey = journey
         self.privacy_zone = privacy_zone
         self.at = at
         self.location = location
@@ -96,11 +96,7 @@ class JourneyMap(Widget):
 
     def _init_maybe(self):
         if self.map is None:
-            journey = Journey()
-
-            self.timeseries.process(journey.accept)
-
-            bbox = journey.bounding_box
+            bbox = self.journey.bounding_box
             self.map = geotiler.Map(extent=(bbox.min.lon, bbox.min.lat, bbox.max.lon, bbox.max.lat),
                                     size=(self.size, self.size))
 
@@ -206,9 +202,9 @@ def view_window(size, d):
 
 class MovingJourneyMap(Widget):
 
-    def __init__(self, timeseries, privacy_zone, location, size, zoom, renderer):
+    def __init__(self, journey, privacy_zone, location, size, zoom, renderer):
         self.privacy_zone = privacy_zone
-        self.timeseries = timeseries
+        self.journey = journey
         self.size = size
         self.renderer = renderer
         self.zoom = zoom
@@ -218,10 +214,7 @@ class MovingJourneyMap(Widget):
         self.cached_map = None
 
     def _redraw(self):
-        journey = Journey()
-        self.timeseries.process(journey.accept)
-
-        bbox = journey.bounding_box
+        bbox = self.journey.bounding_box
 
         map = geotiler.Map(
             extent=(
@@ -282,10 +275,10 @@ class OutLine:
 
 
 class Circuit(Widget):
-    def __init__(self, dimensions: Dimension, framemeta: FrameMeta, location: Callable[[], Point],
+    def __init__(self, dimensions: Dimension, journey_fn: Callable[[], Journey], location: Callable[[], Point],
                  privacy_zone=NoPrivacyZone(),
                  fill=(255, 0, 0), fill_width=4, outline=(255, 255, 255), outline_width=2):
-        self.framemeta = framemeta
+        self.journey_fn = journey_fn
         self.location = location
         self.dimensions = dimensions
         self.privacy_zone = privacy_zone
@@ -303,8 +296,7 @@ class Circuit(Widget):
 
     def draw(self, image: Image, draw: ImageDraw):
         if self.image is None:
-            journey = Journey()
-            self.framemeta.process(journey.accept)
+            journey = self.journey_fn()
 
             self.bbox = journey.bounding_box
             self.size = self.bbox.size() * 1.1

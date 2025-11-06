@@ -30,9 +30,10 @@ class Coordinate:
 
 
 class Point:
-    def __init__(self, lat: float, lon: float):
+    def __init__(self, lat: float, lon: float, dt=None):
         self.lon = lon
         self.lat = lat
+        self.dt = dt
 
     def __eq__(self, other):
         return self.lat == other.lat and self.lon == other.lon

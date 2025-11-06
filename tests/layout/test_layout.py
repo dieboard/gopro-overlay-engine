@@ -25,8 +25,6 @@ from datetime import datetime, timezone, timedelta
 rng = random.Random()
 rng.seed(12345)
 
-framemeta = fake.fake_framemeta(length=timedelta(minutes=10), step=timedelta(seconds=1), rng=rng)
-
 renderer = MapRenderer(cache_dir=arguments.default_config_location, styler=MapStyler())
 
 font = load_test_font()
@@ -46,7 +44,9 @@ def test_render_default_layout():
     xmldoc = load_xml_layout(Path("default-1920x1080"))
 
     with renderer.open() as map_renderer:
-        return time_layout("default", layout_from_xml(xmldoc, map_renderer, framemeta, font, privacy=NoPrivacyZone()))
+        framemeta = fake.fake_framemeta(length=timedelta(minutes=10), step=timedelta(seconds=1), rng=rng)
+        framemeta.journey()
+        return time_layout("default", layout_from_xml(xmldoc, map_renderer, framemeta, font, privacy=NoPrivacyZone()), framemeta)
 
 
 @approve_image
@@ -54,12 +54,15 @@ def test_render_default_layout_different_units():
     xmldoc = load_xml_layout(Path("default-1920x1080"))
 
     with renderer.open() as map_renderer:
+        framemeta = fake.fake_framemeta(length=timedelta(minutes=10), step=timedelta(seconds=1), rng=rng)
+        framemeta.journey()
         return time_layout(
             "default",
             layout_from_xml(
                 xmldoc, map_renderer, framemeta, font, privacy=NoPrivacyZone(),
                 converters=Converters(speed_unit="kph", temperature_unit="kelvin")
-            )
+            ),
+            framemeta
         )
 
 
@@ -68,9 +71,12 @@ def test_render_default_layout_27k():
     xmldoc = load_xml_layout(Path("default-2704x1520"))
 
     with renderer.open() as map_renderer:
+        framemeta = fake.fake_framemeta(length=timedelta(minutes=10), step=timedelta(seconds=1), rng=rng)
+        framemeta.journey()
         return time_layout(
             "default",
             layout_from_xml(xmldoc, map_renderer, framemeta, font, privacy=NoPrivacyZone()),
+            framemeta,
             dimensions=Dimension(2704, 1520)
         )
 
@@ -80,9 +86,12 @@ def test_render_default_layout_4k():
     xmldoc = load_xml_layout(Path("default-3840x2160"))
 
     with renderer.open() as map_renderer:
+        framemeta = fake.fake_framemeta(length=timedelta(minutes=10), step=timedelta(seconds=1), rng=rng)
+        framemeta.journey()
         return time_layout(
             "default-4k",
             layout_from_xml(xmldoc, map_renderer, framemeta, font, privacy=NoPrivacyZone()),
+            framemeta,
             dimensions=Dimension(3840, 2160)
         )
 
@@ -90,7 +99,9 @@ def test_render_default_layout_4k():
 @approve_image
 def test_render_speed_layout():
     with renderer.open() as map_renderer:
-        return time_layout("speed", speed_awareness_layout(map_renderer, font=font))
+        framemeta = fake.fake_framemeta(length=timedelta(minutes=10), step=timedelta(seconds=1), rng=rng)
+        framemeta.journey()
+        return time_layout("speed", speed_awareness_layout(map_renderer, font=font), framemeta)
 
 
 @approve_image
@@ -99,7 +110,9 @@ def test_render_example_layout():
     xmldoc = load_xml_layout(Path("example"))
 
     with renderer.open() as map_renderer:
-        return time_layout("xml", layout_from_xml(xmldoc, map_renderer, framemeta, font, privacy=NoPrivacyZone()))
+        framemeta = fake.fake_framemeta(length=timedelta(minutes=10), step=timedelta(seconds=1), rng=rng)
+        framemeta.journey()
+        return time_layout("xml", layout_from_xml(xmldoc, map_renderer, framemeta, font, privacy=NoPrivacyZone()), framemeta)
 
 
 @approve_image
@@ -107,7 +120,9 @@ def test_render_example_2_layout():
     xmldoc = load_xml_layout(Path("example-2"))
 
     with renderer.open() as map_renderer:
-        return time_layout("xml", layout_from_xml(xmldoc, map_renderer, framemeta, font, privacy=NoPrivacyZone()))
+        framemeta = fake.fake_framemeta(length=timedelta(minutes=10), step=timedelta(seconds=1), rng=rng)
+        framemeta.journey()
+        return time_layout("xml", layout_from_xml(xmldoc, map_renderer, framemeta, font, privacy=NoPrivacyZone()), framemeta)
 
 
 @approve_image
@@ -115,7 +130,9 @@ def test_render_power_1920_1080():
     xmldoc = load_xml_layout(Path("power-1920x1080"))
 
     with renderer.open() as map_renderer:
-        return time_layout("xml", layout_from_xml(xmldoc, map_renderer, framemeta, font, privacy=NoPrivacyZone()))
+        framemeta = fake.fake_framemeta(length=timedelta(minutes=10), step=timedelta(seconds=1), rng=rng)
+        framemeta.journey()
+        return time_layout("xml", layout_from_xml(xmldoc, map_renderer, framemeta, font, privacy=NoPrivacyZone()), framemeta)
 
 
 @approve_image
@@ -129,7 +146,9 @@ def test_render_xml_component():
         </composite>
     </layout>
     """
-    return do_layout(xmldoc)
+    framemeta = fake.fake_framemeta(length=timedelta(minutes=10), step=timedelta(seconds=1), rng=rng)
+    framemeta.journey()
+    return do_layout(xmldoc, framemeta)
 
 
 @approve_image
@@ -139,13 +158,14 @@ def test_render_cairo_arc_annotated():
      <component type="cairo_gauge_arc_annotated" metric="speed" start="0" arc-value-lower="15" arc-value-upper="30" />
     </layout>
     """
+    framemeta = fake.fake_framemeta(length=timedelta(minutes=10), step=timedelta(seconds=1), rng=rng)
+    framemeta.journey()
+    return do_layout(xml, framemeta)
 
-    return do_layout(xml)
 
-
-def do_layout(xmldoc):
+def do_layout(xmldoc, framemeta):
     with renderer.open() as map_renderer:
-        return time_layout("xml", layout_from_xml(xmldoc, map_renderer, framemeta, font, privacy=NoPrivacyZone()))
+        return time_layout("xml", layout_from_xml(xmldoc, map_renderer, framemeta, font, privacy=NoPrivacyZone()), framemeta)
 
 
 @approve_image
@@ -166,6 +186,8 @@ def test_render_xml_component_with_exclusions():
     """
 
     with renderer.open() as map_renderer:
+        framemeta = fake.fake_framemeta(length=timedelta(minutes=10), step=timedelta(seconds=1), rng=rng)
+        framemeta.journey()
         return time_layout("xml",
                            layout_from_xml(
                                xmldoc,
@@ -174,10 +196,11 @@ def test_render_xml_component_with_exclusions():
                                font,
                                privacy=NoPrivacyZone(),
                                include=lambda name: name == "alice"
-                           ))
+                           ),
+                           framemeta)
 
 
-def time_layout(name, layout, repeat=20, dimensions=Dimension(1920, 1080)):
+def time_layout(name, layout, framemeta, repeat=20, dimensions=Dimension(1920, 1080)):
     supplier = SimpleFrameSupplier(dimensions)
     overlay = Overlay(framemeta=framemeta, create_widgets=layout)
 
@@ -199,6 +222,8 @@ def test_render_location_component():
     csv_timeseries = ts(
         (0, {"street": "Street", "city": "City", "state": "State"})
     )
+    framemeta = fake.fake_framemeta(length=timedelta(minutes=10), step=timedelta(seconds=1), rng=rng)
+    framemeta.journey()
     merge_csv_with_gopro(csv_timeseries, framemeta)
 
     xmldoc = """<layout>
@@ -210,4 +235,4 @@ def test_render_location_component():
         <component type="metric" x="60" y="48" metric="state" size="16" align="left" cache="False"/>
     </layout>
     """
-    return do_layout(xmldoc)
+    return do_layout(xmldoc, framemeta)

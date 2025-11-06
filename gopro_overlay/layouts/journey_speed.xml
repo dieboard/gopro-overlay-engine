@@ -1,0 +1,18 @@
+<gopro-layout>
+    <composite name="journey-speed">
+        <frame x="100" y="100" width="300" height="200" bg="0,0,0,170" cr="10">
+            <composite>
+                <component x="10" y="10" type="text" size="16" rgb="255,255,255">Journey Info</component>
+
+                <component x="10" y="40" type="metric" metric="journey-distance" units="km" size="16" rgb="255,255,255" dp="2"/>
+                <component x="150" y="40" type="metric-unit" metric="journey-distance" units="km" size="16" rgb="255,255,255"/>
+
+                <component x="10" y="70" type="metric" metric="journey-max-speed" units="kph" size="16" rgb="255,255,255" dp="1"/>
+                <component x="150" y="70" type="metric-unit" metric="journey-max-speed" units="kph" size="16" rgb="255,255,255"/>
+
+                <component x="10" y="100" type="metric" metric="journey-average-speed" units="kph" size="16" rgb="255,255,255" dp="1"/>
+                <component x="150" y="100" type="metric-unit" metric="journey-average-speed" units="kph" size="16" rgb="255,255,255"/>
+            </composite>
+        </frame>
+    </composite>
+</gopro-layout>

@@ -93,12 +93,12 @@ class CairoCircuit(CairoWidget):
 
     def __init__(
             self,
-            framemeta: FrameMeta,
+            journey_fn: Callable[[], Journey],
             location: Callable[[], Point],
             line: Line = Line(fill=white, outline=black, width=0.01),
             loc: Line = Line(fill=blue, outline=white, width=0.015),
     ):
-        self.framemeta = framemeta
+        self._journey_fn = journey_fn
         self._journey = None
         self._size = None
         self._mid = None
@@ -120,8 +120,7 @@ class CairoCircuit(CairoWidget):
 
     def journey(self):
         if self._journey is None:
-            self._journey = Journey()
-            self.framemeta.process(self._journey.accept)
+            self._journey = self._journey_fn()
             bbox = self._journey.bounding_box
             size = bbox.size() * 1.1
 

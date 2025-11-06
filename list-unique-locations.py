@@ -25,15 +25,15 @@ def get_unique_locations(csv_file):
     }
 
 if __name__ == '__main__':
-    locations = get_unique_locations('output.csv')
-    print("Unique Cities:")
+    locations = get_unique_locations('ride.csv')
+    print("Cities:")
     for city in locations['cities']:
         print(f"- {city}")
 
-    print("\nUnique Districts:")
+    print("\nDistricts:")
     for district in locations['districts']:
         print(f"- {district}")
 
-    print("\nUnique Localities:")
+    print("\nLocalities:")
     for locality in locations['localities']:
         print(f"- {locality}")

@@ -21,6 +21,7 @@ from gopro_overlay.framemeta_gpmd import LoadFlag
 from gopro_overlay.gpmf import GPSFix, GPS_FIXED_VALUES
 import requests
 
+from gopro_overlay.framemeta_modifiers import filter_gps_jumps
 from gopro_overlay.gpx import load_timeseries
 from gopro_overlay.loading import GoproLoader
 from gopro_overlay.log import log
@@ -239,7 +240,7 @@ if __name__ == "__main__":
     print(f"INFO: Loaded {len(ts)} initial data points.")
 
     if not args.gpx:
-        print("INFO: Processing data (calculating speed, distance, etc.)...")   
+        print("INFO: Processing data (calculating speed, distance, etc.)...")
 
     packets_per_second = 18
     locked_2d = lambda e: e.gpsfix in GPS_FIXED_VALUES
@@ -254,6 +255,11 @@ if __name__ == "__main__":
         ts.process(timeseries_process.filter_locked())
     else:
         print("INFO: GPX file loaded. Skipping redundant calculations.")
+
+    log(f"Filtering GPS Jumps, max speed=50 m/s")
+    corrected = filter_gps_jumps(ts, max_speed=50)
+    if corrected > 0:
+        log(f"Corrected {corrected} GPS points at start of recording")
 
     filter_fn = locked_2d if args.only_locked else lambda e: True
 

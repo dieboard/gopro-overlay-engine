@@ -6,3 +6,4 @@ WORKDIR /app
 
 # This makes the container self-sufficient.
 COPY . .
+RUN chmod +x bin/*

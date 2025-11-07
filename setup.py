@@ -55,21 +55,22 @@ setup(
     ],
     install_requires=requires,
     tests_require=test_requirements,
+    scripts=[
+        "bin/gopro-contrib-data-extract.py",
+        "bin/gopro-cut.py",
+        "bin/gopro-dashboard.py",
+        "bin/gopro-extract.py",
+        "bin/gopro-join.py",
+        "bin/gopro-layout.py",
+        "bin/gopro-rename.py",
+        "bin/gopro-to-csv.py",
+        "bin/gopro-to-gpx.py",
+        "bin/gopro-debug.py",
+    ],
     python_requires=">=3.10",
     include_package_data=True,
     entry_points={
-        "console_scripts": [
-            "gopro-contrib-data-extract=bin.gopro-contrib-data-extract:main",
-            "gopro-cut=bin.gopro-cut:main",
-            "gopro-dashboard=bin.gopro-dashboard:main",
-            "gopro-extract=bin.gopro-extract:main",
-            "gopro-join=bin.gopro-join:main",
-            "gopro-layout=bin.gopro-layout:main",
-            "gopro-rename=bin.gopro-rename:main",
-            "gopro-to-csv=bin.gopro-to-csv:main",
-            "gopro-to-gpx=bin.gopro-to-gpx:main",
-            "gopro-debug=bin.gopro-debug:main",
-        ]
+        "console_scripts": []
     },
     project_urls={
         'Source': 'https://github.com/dieboard/gopro-overlay-engine',

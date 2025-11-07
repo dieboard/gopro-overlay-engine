@@ -4,6 +4,7 @@ from datetime import timedelta
 from typing import Callable, List, MutableMapping
 
 from gopro_overlay.entry import Entry
+from gopro_overlay.journey import Journey
 from gopro_overlay.log import log
 from gopro_overlay.timeunits import Timeunit, timeunits
 
@@ -105,6 +106,14 @@ class FrameMeta:
         self.pps = packets_per_second
         self.framelist: List[Timeunit] = []
         self.frames: MutableMapping[Timeunit, Entry] = {}
+        self._journey = None
+
+    def journey(self):
+        if self._journey is None:
+            self._journey = Journey()
+            for e in self.items():
+                self._journey.accept(e)
+        return self._journey
 
     def __len__(self):
         self.check_modified()

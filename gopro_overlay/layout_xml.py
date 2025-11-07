@@ -11,6 +11,7 @@ from pint.formatting import format_unit
 from gopro_overlay import layouts
 from gopro_overlay.dimensions import Dimension
 from gopro_overlay.framemeta import Window
+from gopro_overlay.journey import rich
 from gopro_overlay.layout_components import moving_map, journey_map, text, metric, metric_value
 from gopro_overlay.point import Coordinate
 from gopro_overlay.timeseries import Entry
@@ -425,23 +426,42 @@ class Widgets:
                 stroke=rgbattr(element, "outline", d=(0, 0, 0)),
                 stroke_width=iattrib(element, "outline_width", d=2),
             )
+        elif metric_name in ["journey-distance", "journey-max-speed", "journey-average-speed"]:
+            journey = rich(self.framemeta.journey())
+            accessors = {
+                "journey-distance": lambda e: units.Quantity(journey.distance(), units.m),
+                "journey-max-speed": lambda e: units.Quantity(journey.max_speed(), units.mps),
+                "journey-average-speed": lambda e: units.Quantity(journey.average_speed(), units.mps),
+            }
+            return metric(
+                at=at(element),
+                entry=entry,
+                accessor=accessors[metric_name],
+                formatter=quantity_formatter_from(element),
+                font=self._font(element, "size", d=16),
+                converter=self.converters.converter(attrib(element, "units", d=None)),
+                align=attrib(element, "align", d="left"),
+                cache=battrib(element, "cache", d=True),
+                fill=rgbattr(element, "rgb", d=(255, 255, 255)),
+                stroke=rgbattr(element, "outline", d=(0, 0, 0)),
+                stroke_width=iattrib(element, "outline_width", d=2),
+            )
         else:
             formatter = quantity_formatter_from(element)
             converter = self.converters.converter(attrib(element, "units", d=None))
-
-        return metric(
-            at=at(element),
-            entry=entry,
-            accessor=metric_accessor_from(metric_name),
-            formatter=formatter,
-            font=self._font(element, "size", d=16),
-            converter=converter,
-            align=attrib(element, "align", d="left"),
-            cache=battrib(element, "cache", d=True),
-            fill=rgbattr(element, "rgb", d=(255, 255, 255)),
-            stroke=rgbattr(element, "outline", d=(0, 0, 0)),
-            stroke_width=iattrib(element, "outline_width", d=2),
-        )
+            return metric(
+                at=at(element),
+                entry=entry,
+                accessor=metric_accessor_from(metric_name),
+                formatter=formatter,
+                font=self._font(element, "size", d=16),
+                converter=converter,
+                align=attrib(element, "align", d="left"),
+                cache=battrib(element, "cache", d=True),
+                fill=rgbattr(element, "rgb", d=(255, 255, 255)),
+                stroke=rgbattr(element, "outline", d=(0, 0, 0)),
+                stroke_width=iattrib(element, "outline_width", d=2),
+            )
 
     @allow_attributes({"x", "y", "metric", "size", "units", "align", "rgb", "outline", "outline_width"})
     def create_metric_unit(self, element: ET.Element, entry, **kwargs) -> Widget:
@@ -520,7 +540,7 @@ class Widgets:
             entry,
             privacy_zone=self.privacy,
             renderer=self.renderer,
-            timeseries=self.framemeta,
+            journey=rich(self.framemeta.journey()),
             size=iattrib(element, "size", d=256),
             corner_radius=iattrib(element, "corner_radius", 0),
             opacity=fattrib(element, "opacity", 0.7, r=FloatRange(0.0, 1.0))
@@ -532,7 +552,7 @@ class Widgets:
             location=lambda: entry().point,
             privacy_zone=self.privacy,
             renderer=self.renderer,
-            timeseries=self.framemeta,
+            journey=rich(self.framemeta.journey()),
             size=iattrib(element, "size", d=256),
             zoom=iattrib(element, "zoom", d=16, r=range(1, 20))
         )
@@ -543,7 +563,7 @@ class Widgets:
         return Circuit(
             location=lambda: entry().point,
             privacy_zone=self.privacy,
-            framemeta=self.framemeta,
+            journey_fn=lambda: rich(self.framemeta.journey()),
             dimensions=Dimension(size, size),
             fill=rgbattr(element, "fill", d=(255, 0, 0)),
             outline=rgbattr(element, "outline", d=(255, 255, 255)),

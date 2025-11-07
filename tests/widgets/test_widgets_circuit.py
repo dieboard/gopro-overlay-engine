@@ -31,20 +31,20 @@ def pt():
 @pytest.mark.gfx
 @approve_image
 def test_cairo_circuit_defaults():
-    return cairo_widget_test(CairoCircuit(framemeta=ts, location=pt))
+    return cairo_widget_test(CairoCircuit(journey_fn=lambda: ts.journey(), location=pt))
 
 
 @pytest.mark.gfx
 @approve_image
 def test_cairo_circuit_defaults_rotate():
-    return cairo_widget_test(CairoCircuit(framemeta=ts, location=pt), rotation=45)
+    return cairo_widget_test(CairoCircuit(journey_fn=lambda: ts.journey(), location=pt), rotation=45)
 
 
 @pytest.mark.gfx
 @approve_image
 def test_cairo_circuit_line_width():
     return cairo_widget_test(
-        CairoCircuit(framemeta=ts, location=pt, line=Line(circuit.black, circuit.white, width=0.05))
+        CairoCircuit(journey_fn=lambda: ts.journey(), location=pt, line=Line(circuit.black, circuit.white, width=0.05))
     )
 
 
@@ -52,7 +52,7 @@ def test_cairo_circuit_line_width():
 @approve_image
 def test_cairo_circuit_fill():
     return cairo_widget_test(
-        CairoCircuit(framemeta=ts, location=pt, line=Line((255, 0, 255), circuit.white, width=0.01))
+        CairoCircuit(journey_fn=lambda: ts.journey(), location=pt, line=Line((255, 0, 255), circuit.white, width=0.01))
     )
 
 
@@ -60,7 +60,7 @@ def test_cairo_circuit_fill():
 @approve_image
 def test_cairo_circuit_outline():
     return cairo_widget_test(
-        CairoCircuit(framemeta=ts, location=pt, line=Line(circuit.black, (255, 0, 255), width=0.01))
+        CairoCircuit(journey_fn=lambda: ts.journey(), location=pt, line=Line(circuit.black, (255, 0, 255), width=0.01))
     )
 
 
@@ -68,7 +68,7 @@ def test_cairo_circuit_outline():
 @approve_image
 def test_cairo_circuit_location():
     return cairo_widget_test(
-        CairoCircuit(framemeta=ts, location=pt, loc=Line(circuit.blue, circuit.white, width=0.025))
+        CairoCircuit(journey_fn=lambda: ts.journey(), location=pt, loc=Line(circuit.blue, circuit.white, width=0.025))
     )
 
 
@@ -81,7 +81,7 @@ def test_circuit():
         widgets=[
             Circuit(
                 dimensions=Dimension(500, 500),
-                framemeta=ts,
+                journey_fn=lambda: ts.journey(),
                 privacy_zone=NoPrivacyZone(),
                 location=lambda: ts.get(ts.min).point,
             )

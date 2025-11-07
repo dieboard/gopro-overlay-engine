@@ -77,9 +77,10 @@ def test_rendering_moving_map_journey():
 @approve_image
 def test_render_journey_map():
     with renderer.open() as map_renderer:
+        journey = ts.journey()
         return time_rendering("journey_map", widgets=[
             journey_map(at=Coordinate(100, 20), entry=lambda: ts.get(ts.min), size=256, renderer=map_renderer,
-                        timeseries=ts, privacy_zone=NoPrivacyZone())
+                        journey=journey, privacy_zone=NoPrivacyZone())
         ])
 
 
@@ -87,9 +88,10 @@ def test_render_journey_map():
 @approve_image
 def test_render_journey_map_rounded():
     with renderer.open() as map_renderer:
+        journey = ts.journey()
         return time_rendering("journey_map", widgets=[
             journey_map(at=Coordinate(100, 20), entry=lambda: ts.get(ts.min), size=256, renderer=map_renderer,
-                        timeseries=ts, privacy_zone=NoPrivacyZone(), corner_radius=35)
+                        journey=journey, privacy_zone=NoPrivacyZone(), corner_radius=35)
         ])
 
 
@@ -100,9 +102,10 @@ def test_render_journey_map_rounded_when_no_data_was_locked_issue_103():
     ts.process(lambda e: {"gpsfix": GPSFix.NO.value})
 
     with renderer.open() as map_renderer:
+        journey = ts.journey()
         return time_rendering("journey_map", widgets=[
             journey_map(at=Coordinate(100, 20), entry=lambda: ts.get(ts.min), size=256, renderer=map_renderer,
-                        timeseries=ts, privacy_zone=NoPrivacyZone(), corner_radius=35)
+                        journey=journey, privacy_zone=NoPrivacyZone(), corner_radius=35)
         ])
 
 
@@ -111,9 +114,10 @@ def test_render_journey_map_rounded_when_no_data_was_locked_issue_103():
 def test_render_journey_very_transparent():
 
     with renderer.open() as map_renderer:
+        journey = ts.journey()
         return time_rendering("journey_map", widgets=[
             journey_map(at=Coordinate(100, 20), entry=lambda: ts.get(ts.min), size=256, renderer=map_renderer,
-                        timeseries=ts, privacy_zone=NoPrivacyZone(), opacity=0.1)
+                        journey=journey, privacy_zone=NoPrivacyZone(), opacity=0.1)
         ])
 
 
@@ -172,11 +176,12 @@ def test_render_moving_map_very_rounded():
 @approve_image
 def test_moving_journey_map_at_start():
     with renderer.open() as map_renderer:
+        journey = ts.journey()
         return time_rendering(
             "test_moving_journey_map_at_start",
             widgets=[
                 MovingJourneyMap(
-                    timeseries=ts,
+                    journey=journey,
                     privacy_zone=NoPrivacyZone(),
                     location=lambda: ts.get(ts.min).point,
                     size=256,
@@ -189,16 +194,15 @@ def test_moving_journey_map_at_start():
 @pytest.mark.gfx
 @approve_image
 def test_moving_journey_map_halfway():
-    ts = fake.fake_framemeta(timedelta(minutes=10), step=timedelta(seconds=1), rng=rng, point_step=0.0005)
-
     with renderer.open() as map_renderer:
+        journey = ts.journey()
         return time_rendering(
             "test_moving_journey_map_halfway",
             widgets=[
                 Translate(
                     Coordinate(256, 0),
                     MovingJourneyMap(
-                        timeseries=ts,
+                        journey=journey,
                         privacy_zone=NoPrivacyZone(),
                         location=lambda: ts.get(ts.min + ((ts.max - ts.min) / 3)).point,
                         size=256,
@@ -212,9 +216,8 @@ def test_moving_journey_map_halfway():
 @pytest.mark.gfx
 @approve_image
 def test_moving_journey_map_in_frame():
-    ts = fake.fake_framemeta(timedelta(minutes=10), step=timedelta(seconds=1), rng=rng, point_step=0.0005)
-
     with renderer.open() as map_renderer:
+        journey = ts.journey()
         return time_rendering(
             "test_moving_journey_map_halfway",
             widgets=[
@@ -225,7 +228,7 @@ def test_moving_journey_map_in_frame():
                         opacity=0.7,
                         corner_radius=128,
                         child=MovingJourneyMap(
-                            timeseries=ts,
+                            journey=journey,
                             privacy_zone=NoPrivacyZone(),
                             location=lambda: ts.get(ts.min + ((ts.max - ts.min) / 3)).point,
                             size=256,

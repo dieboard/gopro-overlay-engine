@@ -65,8 +65,7 @@ def write_csv_output(f, args, ts, filter_fn):
         writer.writeheader()
 
         # GEWIJZIGD: TQDM toegevoegd
-        items_to_process = list(filter(filter_fn, ts.items()))
-        for entry in tqdm(items_to_process, desc="Processing street names"):
+        for entry in tqdm(filter(filter_fn, ts.items()), desc="Processing street names"):
             location_info = get_location_info(
                 lat=entry.point.lat,
                 lon=entry.point.lon,
@@ -99,8 +98,7 @@ def write_csv_output(f, args, ts, filter_fn):
             items_iterator = ts.items()
         
         # GEWIJZIGD: TQDM toegevoegd
-        items_to_process = list(filter(filter_fn, items_iterator))
-        for entry in tqdm(items_to_process, desc="Processing simple output"):
+        for entry in tqdm(filter(filter_fn, items_iterator), desc="Processing simple output"):
             location_info = get_location_info(
                 lat=entry.point.lat,
                 lon=entry.point.lon,
@@ -137,8 +135,7 @@ def write_csv_output(f, args, ts, filter_fn):
             items_iterator = ts.items()
         
         # GEWIJZIGD: TQDM toegevoegd
-        items_to_process = list(filter(filter_fn, items_iterator))
-        for entry in tqdm(items_to_process, desc="Processing detailed CSV"):
+        for entry in tqdm(filter(filter_fn, items_iterator), desc="Processing detailed CSV"):
             row = {
                 "packet": printable_unit(entry.packet),
                 "packet_index": printable_unit(entry.packet_index),
@@ -256,7 +253,7 @@ if __name__ == "__main__":
     else:
         print("INFO: GPX file loaded. Skipping redundant calculations.")
 
-    log(f"Filtering GPS Jumps, max speed=50 m's")
+    log(f"Filtering GPS Jumps, max speed=50 m/s")
     corrected = filter_gps_jumps(ts, max_speed=50)
     if corrected > 0:
         log(f"Corrected {corrected} GPS points at start of recording")

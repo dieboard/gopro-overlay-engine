@@ -68,15 +68,14 @@ if __name__ == "__main__":
 
     fm = gopro.framemeta
 
-    log(f"Filtering GPS Jumps, max speed=50 m/s")
-    corrected = filter_gps_jumps(fm, max_speed=50)
-    if corrected > 0:
-        log(f"Corrected {corrected} GPS points at start of recording")
-
     log("Generating GPX")
 
     locked_2d = lambda e: e.gpsfix in GPS_FIXED_VALUES
     filter_fn = locked_2d if args.only_locked else lambda e: True
+
+    corrected = filter_gps_jumps(fm, max_speed=50)
+    if corrected > 0:
+        log(f"Corrected {corrected} GPS points at start of recording")
 
     gpx = framemeta_to_gpx(fm, step=datetime.timedelta(seconds=args.every), filter_fn=filter_fn)
 

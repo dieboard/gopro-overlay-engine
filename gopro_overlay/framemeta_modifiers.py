@@ -1,7 +1,6 @@
 from gopro_overlay.framemeta import FrameMeta
 from gopro_overlay.gpmf.gpmf import GPSFix
 from gopro_overlay.point import Point
-from gopro_overlay.timeunits import timeunits
 from gopro_overlay.units import units
 from pint import DimensionalityError
 
@@ -50,3 +49,8 @@ def filter_gps_jumps(framemeta: FrameMeta, max_speed):
         return first_good_sample
 
     return 0
+
+def dummy_modifier(framemeta: FrameMeta):
+    for entry in framemeta.items():
+        if entry.timestamp < units.Quantity(2, units.minute):
+            entry.point = Point(0, 0)

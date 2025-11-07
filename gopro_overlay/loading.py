@@ -7,6 +7,7 @@ from typing import Set, Optional
 from gopro_overlay import gpx, fit, framemeta_csv
 from gopro_overlay.ffmpeg_gopro import FFMPEGGoPro, GoproRecording
 from gopro_overlay.framemeta import FrameMeta
+from gopro_overlay.framemeta_modifiers import filter_gps_jumps
 from gopro_overlay.framemeta_gpmd import LoadFlag, parse_gopro
 from gopro_overlay.gpmd_filters import GPSLockFilter, NullGPSLockFilter
 from gopro_overlay.log import fatal
@@ -57,6 +58,8 @@ class GoproLoader:
                 flags=self.flags,
                 gps_lock_filter=self.filter
             )
+
+            filter_gps_jumps(frame_meta, max_speed=50)
 
             return GoPro(recording=recording, framemeta=frame_meta)
 

@@ -15,6 +15,7 @@ from gopro_overlay.ffmpeg import FFMPEG
 from gopro_overlay.ffmpeg_gopro import FFMPEGGoPro
 from gopro_overlay.framemeta_gpx import framemeta_to_gpx
 from gopro_overlay.gpmf import GPS_FIXED_VALUES
+from gopro_overlay.jump_corrector import analyze_and_correct_jump
 from gopro_overlay.loading import GoproLoader
 from gopro_overlay.log import log
 from gopro_overlay.units import units
@@ -66,6 +67,8 @@ if __name__ == "__main__":
     gpmd_filters.poor_report(counter)
 
     fm = gopro.framemeta
+
+    analyze_and_correct_jump(fm)
 
     log("Generating GPX")
 

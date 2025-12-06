@@ -6,6 +6,8 @@ from datetime import timedelta
 def merge_gpx_files(output_file, *gpx_files):
     """
     Merges multiple GPX files intelligently by creating a continuous timeline.
+    It clamps large gaps between points (both within and between files) to prevent
+    date jumps caused by bad GPS data or long pauses.
     """
     merged_gpx = gpxpy.gpx.GPX()
     gpx_track = gpxpy.gpx.GPXTrack()
@@ -16,7 +18,13 @@ def merge_gpx_files(output_file, *gpx_files):
     # This will keep track of the end time of the last point added.
     timeline_cursor = None
 
-    print(f"Merging {len(gpx_files)} GPX files with new logic...")
+    # Threshold for what constitutes a "large gap" that should be closed.
+    # 60 seconds is reasonable for GoPro clips.
+    # If the gap is larger, we reset it to a small step.
+    MAX_GAP_SECONDS = 60
+    DEFAULT_STEP = timedelta(seconds=1)
+
+    print(f"Merging {len(gpx_files)} GPX files with incremental gap logic...")
 
     for file_path in gpx_files:
         try:
@@ -30,28 +38,54 @@ def merge_gpx_files(output_file, *gpx_files):
                     print(f"  -> Warning: File contains no points. Skipping.")
                     continue
 
-                first_point_time_in_file = all_points[0].time
-
-                # If this is the first file, the timeline starts with its first point.
+                # Initialize timeline_cursor with the start of the first file if needed
                 if timeline_cursor is None:
-                    timeline_cursor = first_point_time_in_file
-                
-                # Add a 1-second gap between clips for clarity
-                timeline_cursor += timedelta(seconds=1)
+                    # For the very first point of the very first file, we keep its original time.
+                    timeline_cursor = all_points[0].time
+                    # We subtract a small amount so the loop logic adds the step correctly?
+                    # Actually, let's just handle the first point specially in the loop.
+                    # But simpler: set cursor to T0 - step.
+                    timeline_cursor -= DEFAULT_STEP
+
+                # Track previous original time to calculate gaps within the file
+                previous_original_time = None
+
+                # Add a mandatory gap between files (handled by the loop logic if we treat it as a stream)
+                # But we want to ENFORCE a gap between files regardless of original timestamps.
+                # The logic below will calculate `gap = current - previous`.
+                # If we are starting a NEW file, `previous_original_time` is None.
 
                 for point in all_points:
-                    # Calculate how far into its own timeline this point is
-                    delta_from_start = point.time - first_point_time_in_file
-                    
-                    # Apply that delta to our continuous timeline cursor
-                    point.time = timeline_cursor + delta_from_start
-                    
-                    # Add the adjusted point to our new, merged segment
-                    gpx_segment.points.append(point)
+                    original_time = point.time
 
-                # After processing all points in a file, update the cursor to the last point's time
-                if gpx_segment.points:
-                    timeline_cursor = gpx_segment.points[-1].time
+                    if previous_original_time is None:
+                        # First point of the file.
+                        # We force a small step from the previous file's end (timeline_cursor).
+                        # Effectively closing the gap between files to DEFAULT_STEP.
+                        gap = DEFAULT_STEP
+                    else:
+                        # Calculate gap from previous point in THIS file
+                        gap = original_time - previous_original_time
+
+                        # Check for huge gaps (bad data or pauses)
+                        if gap.total_seconds() > MAX_GAP_SECONDS:
+                            print(f"  -> Detected large gap ({gap}) at {original_time}. Clamping to {DEFAULT_STEP}.")
+                            gap = DEFAULT_STEP
+                        elif gap.total_seconds() < 0:
+                            # Negative gap (time going backwards), clamp to 0 or small step
+                             print(f"  -> Detected negative gap ({gap}) at {original_time}. Clamping to 0s.")
+                             gap = timedelta(seconds=0)
+                    
+                    # Apply the gap to the timeline
+                    new_time = timeline_cursor + gap
+                    point.time = new_time
+                    
+                    # Update cursors
+                    timeline_cursor = new_time
+                    previous_original_time = original_time
+
+                    # Add point
+                    gpx_segment.points.append(point)
 
         except Exception as e:
             print(f"  -> An error occurred processing '{file_path}': {e}. Skipping.")

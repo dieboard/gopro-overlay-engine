@@ -4,7 +4,7 @@ from pathlib import Path
 from subprocess import TimeoutExpired
 from typing import Set, Optional
 
-from gopro_overlay import gpx, fit
+from gopro_overlay import gpx, fit, framemeta_csv
 from gopro_overlay.ffmpeg_gopro import FFMPEGGoPro, GoproRecording
 from gopro_overlay.framemeta import FrameMeta
 from gopro_overlay.framemeta_gpmd import LoadFlag, parse_gopro
@@ -13,14 +13,16 @@ from gopro_overlay.log import fatal
 from gopro_overlay.timeseries import Timeseries
 
 
-def load_external(filepath: Path, units) -> Timeseries:
+def load_external(filepath: Path, units) -> "Timeseries":
     suffix = filepath.suffix.lower()
     if suffix == ".gpx":
         return gpx.load_timeseries(filepath, units)
     elif suffix == ".fit":
         return fit.load_timeseries(filepath, units)
+    elif suffix == ".csv":
+        return framemeta_csv.load_csv_timeseries(filepath, units)
     else:
-        fatal(f"Don't recognise filetype from {filepath} - support .gpx and .fit")
+        fatal(f"Don't recognise filetype from {filepath} - support .gpx, .fit and .csv")
 
 
 @dataclasses.dataclass

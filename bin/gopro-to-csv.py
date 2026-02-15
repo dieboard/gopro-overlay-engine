@@ -4,12 +4,14 @@ import argparse
 import csv
 import datetime
 import pathlib
+import sys
 from pathlib import Path
 from typing import Optional
 
 from gopro_overlay import timeseries_process, gpmd_filters
 from gopro_overlay.arguments import BBoxArgs
 from gopro_overlay.assertion import assert_file_exists
+# smart_open is no longer used, but we'll leave the import
 from gopro_overlay.common import smart_open
 from gopro_overlay.counter import ReasonCounter
 from gopro_overlay.ffmpeg import FFMPEG
@@ -21,6 +23,7 @@ import requests
 from gopro_overlay.gpx import load_timeseries
 from gopro_overlay.loading import GoproLoader
 from gopro_overlay.log import log
+from gopro_overlay.timeunits import timeunits
 from gopro_overlay.units import units
 
 
@@ -44,6 +47,111 @@ def get_location_info(lat, lon, host, port):
     except Exception as e:
         log(f"An error occurred: {e}")
     return {}
+
+
+# This new function contains all the logic for writing the CSV file.
+def write_csv_output(f, args, ts, filter_fn):
+    if args.street_city_state:
+        if not args.reverse_geocode:
+            raise SystemExit("--street-city-state requires --reverse-geocode")
+        
+        writer = csv.DictWriter(f=f, fieldnames=["time", "lat", "lon", "street", "city", "state"])
+        writer.writeheader()
+
+        for entry in filter(filter_fn, ts.items()):
+            location_info = get_location_info(
+                lat=entry.point.lat,
+                lon=entry.point.lon,
+                host=args.reverse_geocode_host,
+                port=args.reverse_geocode_port
+            )
+            
+            # 1. Get the street name using the fallback logic from before
+            street_name = location_info.get("street") or location_info.get("name") or ""
+            
+            # 2. NEW: Replace spaces with hyphens to create a "safe" name
+            safe_street_name = street_name.replace(' ', '-')
+
+            # 3. Write the row using the new safe_street_name
+            writer.writerow({
+                "time": entry.dt.isoformat(),
+                "lat": entry.point.lat,
+                "lon": entry.point.lon,
+                "street": safe_street_name,
+                "city": location_info.get("city", ""),
+                "state": location_info.get("state", ""),
+            })
+    elif args.simple_output:
+        if not args.reverse_geocode:
+            raise SystemExit("--simple-output requires --reverse-geocode")
+
+        if args.every > 0:
+            stepper = ts.stepper(step=timeunits(seconds=args.every))
+            items_iterator = (ts.get(dt) for dt in stepper.steps())
+        else:
+            items_iterator = ts.items()
+
+        for entry in filter(filter_fn, items_iterator):
+            location_info = get_location_info(
+                lat=entry.point.lat,
+                lon=entry.point.lon,
+                host=args.reverse_geocode_host,
+                port=args.reverse_geocode_port
+            )
+            f.write(
+                f"{entry.dt.strftime('%H:%M:%S')} {location_info.get('street', '')} {location_info.get('city', '')} {location_info.get('state', '')}\n")
+
+    else:
+        fieldnames = ["packet", "packet_index", "gps_fix", "date", "lat", "lon", "dop", "alt",
+                      "speed", "accel",
+                      "dist", "time", "azi", "odo",
+                      "grad",
+                      "accl_x", "accl_y", "accl_z"]
+
+        if args.reverse_geocode:
+            fieldnames.extend(["name", "street", "city", "country", "postcode"])
+
+        writer = csv.DictWriter(f=f, fieldnames=fieldnames)
+        writer.writeheader()
+
+        if args.every > 0:
+            stepper = ts.stepper(step=timeunits(seconds=args.every))
+            items_iterator = (ts.get(dt) for dt in stepper.steps())
+        else:
+            items_iterator = ts.items()
+
+        for entry in filter(filter_fn, items_iterator):
+            row = {
+                "packet": printable_unit(entry.packet),
+                "packet_index": printable_unit(entry.packet_index),
+                "gps_fix": GPSFix(entry.gpsfix).name,
+                "date": entry.dt,
+                "dop": printable_unit(entry.dop),
+                "lat": entry.point.lat,
+                "lon": entry.point.lon,
+                "alt": printable_unit(entry.alt),
+                "grad": printable_unit(entry.grad if entry.grad is not None else entry.cgrad),
+                "speed": printable_unit(entry.speed if entry.speed is not None else entry.cspeed),
+                "accel": printable_unit(entry.accel),
+                "dist": printable_unit(entry.dist),
+                "time": printable_unit(entry.time),
+                "azi": printable_unit(entry.azi),
+                "odo": printable_unit(entry.odo),
+                "accl_x": printable_unit(entry.accl.x) if entry.accl else None,
+                "accl_y": printable_unit(entry.accl.y) if entry.accl else None,
+                "accl_z": printable_unit(entry.accl.z) if entry.accl else None
+            }
+
+            if args.reverse_geocode:
+                location_info = get_location_info(
+                    lat=entry.point.lat,
+                    lon=entry.point.lon,
+                    host=args.reverse_geocode_host,
+                    port=args.reverse_geocode_port
+                )
+                row.update(location_info)
+
+            writer.writerow(row)
 
 
 if __name__ == "__main__":
@@ -74,6 +182,8 @@ if __name__ == "__main__":
     parser.add_argument("--reverse-geocode-port", default=2322, type=int, help="Reverse geocode port")
 
     parser.add_argument("--simple-output", action="store_true", help="Output date, street and city in multi-line format")
+    parser.add_argument("--street-city-state", "--street-state-only", action="store_true",
+                        help="Output time, street, city and state in CSV format")
 
     args = parser.parse_args()
 
@@ -108,11 +218,11 @@ if __name__ == "__main__":
     locked_2d = lambda e: e.gpsfix in GPS_FIXED_VALUES
     locked_3d = lambda e: e.gpsfix == GPSFix.LOCK_3D.value
 
-    # ts.process(timeseries_process.process_ses("point", lambda i: i.point, alpha=0.45), filter_fn=locked_2d)
-    ts.process_deltas(timeseries_process.calculate_speeds(), skip=packets_per_second * 3, filter_fn=locked_2d)
-    ts.process(timeseries_process.calculate_odo(), filter_fn=locked_2d)
-    ts.process_accel(timeseries_process.calculate_accel(), skip=packets_per_second * 3, filter_fn=locked_2d)
-    ts.process_deltas(timeseries_process.calculate_gradient(), skip=packets_per_second * 3, filter_fn=locked_3d)  # hack
+    # ts.process(timeseries_process.process_ses("point", lambda i: i.point, alpha=0.45))
+    ts.process_deltas(timeseries_process.calculate_speeds(), skip=packets_per_second * 3)
+    ts.process(timeseries_process.calculate_odo())
+    ts.process_accel(timeseries_process.calculate_accel(), skip=packets_per_second * 3)
+    ts.process_deltas(timeseries_process.calculate_gradient(), skip=packets_per_second * 3)  # hack
     ts.process(timeseries_process.filter_locked())
 
     filter_fn = locked_2d if args.only_locked else lambda e: True
@@ -129,61 +239,11 @@ if __name__ == "__main__":
 
     dest: Optional[Path] = args.output
 
-    with smart_open(dest) as f:
-        if args.simple_output:
-            if not args.reverse_geocode:
-                raise SystemExit("--simple-output requires --reverse-geocode")
-            for entry in filter(filter_fn, ts.items(step=datetime.timedelta(seconds=args.every))):
-                location_info = get_location_info(
-                    lat=entry.point.lat,
-                    lon=entry.point.lon,
-                    host=args.reverse_geocode_host,
-                    port=args.reverse_geocode_port
-                )
-                f.write(f"{entry.dt.strftime('%H:%M:%S')} {location_info.get('street', '')} {location_info.get('city', '')} {location_info.get('state', '')}\n")
-
-        else:
-            fieldnames = ["packet", "packet_index", "gps_fix", "date", "lat", "lon", "dop", "alt",
-                          "speed", "accel",
-                          "dist", "time", "azi", "odo",
-                          "grad",
-                          "accl_x", "accl_y", "accl_z"]
-
-            if args.reverse_geocode:
-                fieldnames.extend(["name", "street", "city", "country", "postcode"])
-
-            writer = csv.DictWriter(f=f, fieldnames=fieldnames)
-            writer.writeheader()
-
-            for entry in filter(filter_fn, ts.items(step=datetime.timedelta(seconds=args.every))):
-                row = {
-                    "packet": printable_unit(entry.packet),
-                    "packet_index": printable_unit(entry.packet_index),
-                    "gps_fix": GPSFix(entry.gpsfix).name,
-                    "date": entry.dt,
-                    "dop": printable_unit(entry.dop),
-                    "lat": entry.point.lat,
-                    "lon": entry.point.lon,
-                    "alt": printable_unit(entry.alt),
-                    "grad": printable_unit(entry.grad if entry.grad is not None else entry.cgrad),
-                    "speed": printable_unit(entry.speed if entry.speed is not None else entry.cspeed),
-                    "accel": printable_unit(entry.accel),
-                    "dist": printable_unit(entry.dist),
-                    "time": printable_unit(entry.time),
-                    "azi": printable_unit(entry.azi),
-                    "odo": printable_unit(entry.odo),
-                    "accl_x": printable_unit(entry.accl.x) if entry.accl else None,
-                    "accl_y": printable_unit(entry.accl.y) if entry.accl else None,
-                    "accl_z": printable_unit(entry.accl.z) if entry.accl else None
-                }
-
-                if args.reverse_geocode:
-                    location_info = get_location_info(
-                        lat=entry.point.lat,
-                        lon=entry.point.lon,
-                        host=args.reverse_geocode_host,
-                        port=args.reverse_geocode_port
-                    )
-                    row.update(location_info)
-
-                writer.writerow(row)
+    # This is the new logic that opens the file and calls the function above.
+    if dest is None or str(dest) == "-":
+        # The output is the console (stdout), we can't set encoding here
+        write_csv_output(sys.stdout, args, ts, filter_fn)
+    else:
+        # The output is a file, so we open it with the correct encoding
+        with open(dest, "w", encoding="utf-8-sig", newline="") as f:
+            write_csv_output(f, args, ts, filter_fn)

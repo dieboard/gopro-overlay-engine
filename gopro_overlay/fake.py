@@ -90,6 +90,8 @@ def fake_framemeta(length: datetime.timedelta = datetime.timedelta(seconds=20),
                 current_dt,
                 timestamp=units.Quantity(current_frame_time.millis(), units.number),
                 point=points.step(),
+                street="A Fake Street",
+                city="A Fake City",
 
                 dop=units.Quantity(20, units.number),
                 packet=units.Quantity(counter // 18, units.number),

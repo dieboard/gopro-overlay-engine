@@ -1,0 +1,42 @@
+services:
+  # Service 1: The Photon Geocoding API
+  photon:
+    image: rtuszik/photon-docker:latest
+    container_name: photon_geocoder
+    environment:
+      - COUNTRY_CODE=nl # Sets the geocoder to only use data for the Netherlands
+    ports:
+      - "2322:2322" # Lets you access the API from your PC for testing
+    volumes:
+      - photon_data:/photon/photon_data
+    # Healthcheck to ensure the service is ready before the script runs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:2322/api?q=test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Service 2: The container that runs your GoPro script
+  gopro-script:
+    image: gopro-dev-final # Your custom image for the script
+    container_name: gopro_script_runner
+    volumes:
+      - ../:/app # Mounts your current project directory into the container
+      - F:\VidGoPro\100GOPRO:/data # Mounts your video files
+    # This ensures the 'photon' service is healthy before this container starts
+    depends_on:
+      photon:
+        condition: service_healthy
+    # The command uses the service name 'photon' as the hostname!
+    command: >
+      python3 bin/gopro-to-csv.py
+        --reverse-geocode
+        --street-state-only
+        --reverse-geocode-host photon
+        /data/GX010039.MP4
+        /app/output.csv
+
+# This defines the named volume for persisting Photon's map data
+volumes:
+  photon_data:

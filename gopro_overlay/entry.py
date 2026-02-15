@@ -49,8 +49,8 @@ class Entry:
                 end = other.items[key]
                 diff = end - start
                 interp = start + (diff * position)
-            except KeyError:
-                interp = None
+            except (TypeError, KeyError):
+                interp = start
             items[key] = interp
 
         return Entry(dt, **items)

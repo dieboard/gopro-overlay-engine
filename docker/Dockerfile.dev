@@ -1,0 +1,77 @@
+# Use an official NVIDIA CUDA development image to match your driver
+FROM nvidia/cuda:13.0.1-devel-ubuntu22.04
+# Avoid interactive prompts during installation
+ENV DEBIAN_FRONTEND=noninteractive
+# Enable the 'multiverse' repository for the MS Fonts package
+RUN apt-get update && apt-get install -y software-properties-common && \
+    add-apt-repository -y multiverse
+# Install system dependencies, including build tools for ffmpeg
+RUN apt-get update && apt-get install -y \
+    git \
+    build-essential \
+    pkg-config \
+    meson \
+    ninja-build \
+    python3 \
+    python3-venv \
+    python3-dev \
+    python3-pip \
+    libcairo2-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+    fonts-roboto \
+    ttf-mscorefonts-installer \
+    yasm \
+    nasm \
+    cmake \
+    libnuma-dev \
+    libx264-dev \
+    libx265-dev \
+    libvpx-dev \
+    libfdk-aac-dev \
+    && rm -rf /var/lib/apt/lists/*
+# Install ffnvcodec headers required by ffmpeg for CUDA
+RUN git clone https://git.videolan.org/git/ffmpeg/nv-codec-headers.git /tmp/nv-codec-headers && \
+    cd /tmp/nv-codec-headers && \
+    make install && \
+    cd / && \
+    rm -rf /tmp/nv-codec-headers
+# Build FFmpeg from source with all the correct CUDA/NVENC flags enabled
+RUN git clone https://github.com/FFmpeg/FFmpeg.git /tmp/ffmpeg && \
+    cd /tmp/ffmpeg && \
+    ./configure \
+        --enable-nonfree \
+        --enable-cuda-nvcc \
+        --enable-cuvid \
+        --enable-nvenc \
+        --disable-libnpp \
+        --extra-cflags=-I/usr/local/cuda/include \
+        --extra-ldflags=-L/usr/local/cuda/lib64 \
+        --enable-gpl \
+        --enable-libx264 \
+        --enable-libx265 \
+        --enable-libvpx \
+        --enable-libfdk-aac \
+         || (echo "Configure failed, showing config.log:"; cat ffbuild/config.log; exit 1) \
+    && make -j$(nproc) && \
+    make install && \
+    ldconfig && \
+    rm -rf /tmp/ffmpeg
+# Manually clone and build libraqm
+RUN git clone "https://github.com/HOST-Oman/libraqm.git" /tmp/libraqm && \
+    cd /tmp/libraqm && \
+    git checkout v0.10.1 && \
+    meson setup build && \
+    ninja -C build && \
+    ninja -C build install && \
+    ldconfig && \
+    cd / && \
+    rm -rf /tmp/libraqm
+# Set up the project
+WORKDIR /app
+COPY . .
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt --break-system-packages && \
+    pip install -r requirements-dev.txt --break-system-packages && \
+    pip install -e . --break-system-packages
+CMD ["bash"]

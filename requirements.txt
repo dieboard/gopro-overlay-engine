@@ -1,3 +1,4 @@
+numpy<2.0
 # for drawing text/images
 pillow==10.1.0
 # pint for unit conversion
